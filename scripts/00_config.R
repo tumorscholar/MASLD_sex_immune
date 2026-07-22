@@ -1,0 +1,120 @@
+## 00_config.R --------------------------------------------------------------
+## Shared paths, marker/signature definitions, and helper functions for the
+## sex x MASLD hepatic-immune meta-analysis. Every other script starts with
+##   source("00_config.R")
+## Edit ONLY the paths in this file to run on your own machine / HPC.
+## ---------------------------------------------------------------------------
+
+## ---- paths ----------------------------------------------------------------
+## On Apocrita these point at the lab data area and your scratch space.
+## On a laptop, point them anywhere writable (they are created if missing).
+REALDIR <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
+SCRATCH <- Sys.getenv("MASLD_SCRATCH", "/gpfs/scratch/hdx044/masld_meta")
+GEO_CACHE <- file.path(SCRATCH, "geo_cache")
+FIGDIR  <- file.path(REALDIR, "figures")
+for (d in c(REALDIR, SCRATCH, GEO_CACHE, FIGDIR))
+  if (!dir.exists(d)) dir.create(d, recursive = TRUE, showWarnings = FALSE)
+
+## ---- cohorts --------------------------------------------------------------
+COHORTS <- list(
+  list(gse = "GSE130970", type = "rnaseq"),
+  list(gse = "GSE162694", type = "rnaseq"),
+  list(gse = "GSE89632",  type = "array"),
+  list(gse = "GSE135251", type = "rnaseq")
+)
+COHORT_IDS <- vapply(COHORTS, function(x) x$gse, character(1))
+
+## ---- sex markers ----------------------------------------------------------
+FEMALE_MARKERS <- c("XIST")
+MALE_MARKERS   <- c("RPS4Y1","DDX3Y","EIF1AY","UTY","KDM5D",
+                    "USP9Y","NLGN4Y","ZFY","TXLNGY")
+SEX_MARGIN <- 0.5   # |z_Y - z_XIST| below this = "Ambiguous" (dropped)
+
+## ---- cell-type identity signatures (up-only) ------------------------------
+CELLTYPE <- list(
+  ct_CD8T       = c("CD8A","CD8B"),
+  ct_Tcell      = c("CD3D","CD3E","CD3G","TRAC"),
+  ct_NK         = c("NCAM1","KLRD1","NKG7","KLRF1","NCR1","GNLY"),
+  ct_Bcell      = c("CD19","MS4A1","CD79A","CD79B","BANK1"),
+  ct_Plasma     = c("MZB1","XBP1","SDC1","PRDM1","DERL3"),
+  ct_MonoMac    = c("CD68","CD14","LYZ","CSF1R","ITGAM","FCGR3A"),
+  ct_DC         = c("FLT3","CLEC9A","BATF3","CD1C","CLEC10A"),
+  ct_Neutrophil = c("FCGR3B","CSF3R","S100A8","S100A9","CXCR2"),
+  ct_Treg       = c("FOXP3","IL2RA","CTLA4","IKZF2","TNFRSF18"),
+  ct_MAIT       = c("SLC4A10","KLRB1","ZBTB16","RORC","TRAV1-2")
+)
+
+## ---- functional-state signatures (list(up, down)) -------------------------
+STATE <- list(
+  st_CD8_cytotox = list(up = c("GZMA","GZMB","GZMH","PRF1","GNLY","NKG7","KLRD1",
+                               "FGFBP2","KLRG1","CST7","CTSW"), down = character(0)),
+  st_exhaustion  = list(up = c("PDCD1","HAVCR2","LAG3","TIGIT","CTLA4","ENTPD1",
+                               "TOX","CD160","BTLA","LAYN","TNFRSF9","VSIR"), down = character(0)),
+  st_Tpex        = list(up = c("TCF7","SLAMF6","CXCR5","IL7R","ID3","BCL6"), down = character(0)),
+  st_Trm         = list(up = c("CD69","ITGAE","CXCR6","ITGA1","RBPJ","ZNF683"),
+                        down = c("KLF2","S1PR1","SELL","CCR7")),
+  st_Th1         = list(up = c("TBX21","IFNG","CXCR3","IL12RB2","STAT1"), down = character(0)),
+  st_Th17        = list(up = c("RORC","IL17A","IL17F","CCR6","IL23R"), down = character(0)),
+  st_cytotoxCD4  = list(up = c("GZMB","GZMH","GZMA","PRF1","NKG7","GNLY"), down = character(0)),
+  st_senescence  = list(up = c("CDKN1A","CDKN2A","IL6","CXCL8","IGFBP3","IGFBP7",
+                               "SERPINE1","IL1B","IL1A","CCL2","MMP3","TNFRSF1B"), down = character(0))
+)
+
+ALL_SYMS <- sort(unique(c(
+  MALE_MARKERS, FEMALE_MARKERS,
+  unlist(CELLTYPE, use.names = FALSE),
+  unlist(lapply(STATE, function(s) c(s$up, s$down)), use.names = FALSE)
+)))
+
+## ---- helpers --------------------------------------------------------------
+
+## within-vector z-score (population SD, ddof=0, matching numpy/pandas .std(ddof=0))
+zscore <- function(x) {
+  x  <- suppressWarnings(as.numeric(x))
+  mu <- mean(x, na.rm = TRUE)
+  sdv <- sqrt(mean((x - mu)^2, na.rm = TRUE))   # population SD
+  if (is.na(sdv) || sdv == 0) return(x * 0)
+  (x - mu) / sdv
+}
+
+## singscore (rank-based single-sample score), IDENTICAL to the Python version:
+##   score = 2 * (mean_rank_of_markers / n_genes - 0.5)
+## `ranks` is a genes x samples matrix of within-sample average ranks; `ng` = n_genes.
+singscore_custom <- function(ranks, ng, up_ids, dn_ids = NULL) {
+  comp <- function(ids) {
+    ids <- ids[!is.na(ids) & ids %in% rownames(ranks)]
+    if (length(ids) == 0) return(NULL)
+    2 * (colMeans(ranks[ids, , drop = FALSE]) / ng - 0.5)
+  }
+  u <- comp(up_ids)
+  if (is.null(u)) return(NULL)
+  if (!is.null(dn_ids) && length(dn_ids) > 0) {
+    d <- comp(dn_ids)
+    if (!is.null(d)) return(u - d)
+  }
+  u
+}
+
+## within-sample average ranks of an expression matrix (genes x samples),
+## matching pandas M.rank(axis=0, method="average")
+rank_matrix <- function(M) {
+  apply(M, 2, function(col) rank(col, ties.method = "average", na.last = "keep"))
+}
+
+## map a fibrosis-stage label to an ordinal 0-4 (NA if not codeable)
+code_fibrosis <- function(s) {
+  vapply(s, function(v) {
+    if (is.na(v)) return(NA_real_)
+    m <- regmatches(v, regexpr("F([0-4])", v))
+    if (length(m) == 1 && nchar(m) > 0) return(as.numeric(sub("F", "", m)))
+    if (grepl("normal|healthy|hc|control", v, ignore.case = TRUE)) return(0)
+    NA_real_
+  }, numeric(1))
+}
+
+## log2(x+1) if the matrix looks like linear counts (max > 40), else pass-through
+maybe_log2 <- function(M) {
+  if (max(M, na.rm = TRUE) > 40) log2(pmax(M, 0) + 1) else M
+}
+
+message("00_config.R loaded | REALDIR=", REALDIR)

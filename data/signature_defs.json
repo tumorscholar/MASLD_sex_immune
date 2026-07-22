@@ -1,0 +1,202 @@
+{
+ "celltype": {
+  "ct_CD8T": [
+   "CD8A",
+   "CD8B"
+  ],
+  "ct_Tcell": [
+   "CD3D",
+   "CD3E",
+   "CD3G",
+   "TRAC"
+  ],
+  "ct_NK": [
+   "NCAM1",
+   "KLRD1",
+   "NKG7",
+   "KLRF1",
+   "NCR1",
+   "GNLY"
+  ],
+  "ct_Bcell": [
+   "CD19",
+   "MS4A1",
+   "CD79A",
+   "CD79B",
+   "BANK1"
+  ],
+  "ct_Plasma": [
+   "MZB1",
+   "XBP1",
+   "SDC1",
+   "PRDM1",
+   "DERL3"
+  ],
+  "ct_MonoMac": [
+   "CD68",
+   "CD14",
+   "LYZ",
+   "CSF1R",
+   "ITGAM",
+   "FCGR3A"
+  ],
+  "ct_DC": [
+   "FLT3",
+   "CLEC9A",
+   "BATF3",
+   "CD1C",
+   "CLEC10A"
+  ],
+  "ct_Neutrophil": [
+   "FCGR3B",
+   "CSF3R",
+   "S100A8",
+   "S100A9",
+   "CXCR2"
+  ],
+  "ct_Treg": [
+   "FOXP3",
+   "IL2RA",
+   "CTLA4",
+   "IKZF2",
+   "TNFRSF18"
+  ],
+  "ct_MAIT": [
+   "SLC4A10",
+   "KLRB1",
+   "ZBTB16",
+   "RORC",
+   "TRAV1-2"
+  ],
+  "ct_MAITspec": [
+   "SLC4A10",
+   "TRAV1-2"
+  ],
+  "ct_MAITpromisc": [
+   "KLRB1",
+   "RORC",
+   "ZBTB16"
+  ]
+ },
+ "state": {
+  "st_CD8_cytotox": {
+   "up": [
+    "GZMA",
+    "GZMB",
+    "GZMH",
+    "PRF1",
+    "GNLY",
+    "NKG7",
+    "KLRD1",
+    "FGFBP2",
+    "KLRG1",
+    "CST7",
+    "CTSW"
+   ],
+   "down": []
+  },
+  "st_exhaustion": {
+   "up": [
+    "PDCD1",
+    "HAVCR2",
+    "LAG3",
+    "TIGIT",
+    "CTLA4",
+    "ENTPD1",
+    "TOX",
+    "CD160",
+    "BTLA",
+    "LAYN",
+    "TNFRSF9",
+    "VSIR",
+    "CD244",
+    "CD38",
+    "EOMES",
+    "PRDM1",
+    "BATF",
+    "IRF4",
+    "NR4A2",
+    "CXCL13",
+    "TOX2",
+    "CCL3",
+    "CCL4"
+   ],
+   "down": []
+  },
+  "st_Tpex": {
+   "up": [
+    "TCF7",
+    "SLAMF6",
+    "CXCR5",
+    "IL7R",
+    "ID3",
+    "BCL6"
+   ],
+   "down": []
+  },
+  "st_Trm": {
+   "up": [
+    "CD69",
+    "ITGAE",
+    "CXCR6",
+    "ITGA1",
+    "RBPJ",
+    "ZNF683"
+   ],
+   "down": [
+    "KLF2",
+    "S1PR1",
+    "SELL",
+    "CCR7"
+   ]
+  },
+  "st_Th1": {
+   "up": [
+    "TBX21",
+    "IFNG",
+    "CXCR3",
+    "IL12RB2",
+    "STAT1"
+   ],
+   "down": []
+  },
+  "st_Th17": {
+   "up": [
+    "RORC",
+    "IL17A",
+    "IL17F",
+    "CCR6",
+    "IL23R"
+   ],
+   "down": []
+  },
+  "st_cytotoxCD4": {
+   "up": [
+    "GZMB",
+    "GZMH",
+    "GZMA",
+    "PRF1",
+    "NKG7",
+    "GNLY"
+   ],
+   "down": []
+  },
+  "st_senescence": {
+   "up": [
+    "CDKN1A",
+    "CDKN2A",
+    "IL6",
+    "CXCL8",
+    "IGFBP3",
+    "IGFBP7",
+    "SERPINE1",
+    "IL1B",
+    "IL1A",
+    "CCL2",
+    "MMP3",
+    "TNFRSF1B"
+   ],
+   "down": []
+  }
+ }
+}

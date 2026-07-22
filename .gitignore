@@ -1,0 +1,21 @@
+# large downloads & regenerated outputs (never committed)
+*.rds
+*.gct.gz
+geo_cache/
+results/
+figures/
+*.png
+
+# ignore CSV/TSV by default...
+*.csv
+*.tsv
+# ...but DO track the small deposited processed data in data/
+!data/
+!data/*.csv
+!data/*.json
+
+# R / editor cruft
+.Rhistory
+.RData
+.Rproj.user/
+.DS_Store
