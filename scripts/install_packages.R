@@ -18,8 +18,8 @@ for (p in cran)
 ## Bioconductor packages
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 bioc <- c(
-  "GEOquery",     # download + parse GEO series (the R equivalent of GEOparse)
-  "org.Hs.eg.db", # Entrez/Ensembl <-> HGNC symbol mapping (replaces mygene)
+  "GEOquery",     # download + parse GEO series
+  "org.Hs.eg.db", # Entrez/Ensembl <-> HGNC symbol mapping
   "AnnotationDbi"
 )
 for (p in bioc)

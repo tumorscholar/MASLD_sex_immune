@@ -1,10 +1,9 @@
 ## geo_loaders.R --------------------------------------------------------------
-## Shared GEO download/parse helpers (the R equivalents of the GEOparse-based
-## loaders in the Python pipeline). Sourced by 01, 02 and 05.
+## Shared GEO download/parse helpers (Bioconductor GEOquery). Sourced by 01, 02 and 05.
 ## Uses Bioconductor's GEOquery. Metadata + array data are handled cleanly by
 ## GEOquery; RNA-seq COUNT tables live in each series' supplementary files, so
-## for those we download the suppl files and apply the same format heuristics
-## the Python used (largest count/tpm/matrix table; or per-sample merge when a
+## for those we download the suppl files and apply simple format heuristics
+## (largest count/tpm/matrix table; or per-sample merge when a
 ## series ships one file per GSM).
 ## ---------------------------------------------------------------------------
 suppressMessages(library(GEOquery))
@@ -54,7 +53,7 @@ rec_t2d <- function(ch) {
 }
 
 ## ---- array cohort: symbol x sample matrix from the ExpressionSet ----
-## Collapses probes to gene symbols by mean (matching the Python array_full()).
+## Collapses probes to gene symbols by mean.
 array_symbol_matrix <- function(eset) {
   X <- exprs(eset)
   fd <- fData(eset)

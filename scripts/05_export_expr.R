@@ -2,7 +2,6 @@
 ## Export per-cohort gene x GSM expression matrices on the LINEAR scale, for the
 ## deconvolution branch (xCell / MCP-counter expect non-log expression).
 ## Does NOT touch analysis_matrix.csv. Writes expr_<GSE>.csv (native gene IDs).
-## Faithful R port of 05_export_expr.py.
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 source("geo_loaders.R")

@@ -4,7 +4,6 @@
 ## MASLD sex bias is CONSTITUTIONAL (present in healthy liver too) or
 ## DISEASE-EMERGENT (appears only in MASLD).
 ##   readout ~ sexM + age   (plain OLS; GTEx is a single cohort)
-## Faithful R port of 04_gtex_control.py.
 ##
 ## NOTE (known limitation, flagged by review): this baseline model adjusts only
 ## for age. GTEx liver is post-mortem, immune-poor and not sex-balanced; the
@@ -30,7 +29,7 @@ fetch <- function(k) {
   p
 }
 
-## GTEx-specific readout sets (match 04_gtex_control.py exactly, incl. MAIT splits)
+## GTEx-specific readout sets (includes the MAIT receptor-specific / promiscuous splits)
 GT_CELLTYPE <- CELLTYPE
 GT_CELLTYPE$ct_MAITspec    <- c("SLC4A10","TRAV1-2")
 GT_CELLTYPE$ct_MAITpromisc <- c("KLRB1","RORC","ZBTB16")

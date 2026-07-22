@@ -68,7 +68,7 @@ ALL_SYMS <- sort(unique(c(
 
 ## ---- helpers --------------------------------------------------------------
 
-## within-vector z-score (population SD, ddof=0, matching numpy/pandas .std(ddof=0))
+## within-vector z-score (population standard deviation, denominator n)
 zscore <- function(x) {
   x  <- suppressWarnings(as.numeric(x))
   mu <- mean(x, na.rm = TRUE)
@@ -77,7 +77,7 @@ zscore <- function(x) {
   (x - mu) / sdv
 }
 
-## singscore (rank-based single-sample score), IDENTICAL to the Python version:
+## singscore (rank-based single-sample score):
 ##   score = 2 * (mean_rank_of_markers / n_genes - 0.5)
 ## `ranks` is a genes x samples matrix of within-sample average ranks; `ng` = n_genes.
 singscore_custom <- function(ranks, ng, up_ids, dn_ids = NULL) {
@@ -96,7 +96,7 @@ singscore_custom <- function(ranks, ng, up_ids, dn_ids = NULL) {
 }
 
 ## within-sample average ranks of an expression matrix (genes x samples),
-## matching pandas M.rank(axis=0, method="average")
+## average ranks within each sample (ties averaged)
 rank_matrix <- function(M) {
   apply(M, 2, function(col) rank(col, ties.method = "average", na.last = "keep"))
 }

@@ -6,9 +6,7 @@
 ## BH-FDR across readouts; leave-one-cohort-out; both fibrosis codings;
 ## metabolic-adjusted sub-analysis.
 ##
-## Faithful R port of 03_maineffect.py. The one intentional difference: p-values
-## come from lmerTest (Satterthwaite) rather than statsmodels' Wald test — the
-## betas are essentially identical; p-values agree closely.
+## Fixed-effect p-values use lmerTest (Satterthwaite degrees of freedom).
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 suppressMessages({library(lme4); library(lmerTest)})

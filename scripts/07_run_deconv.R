@@ -2,7 +2,7 @@
 ## Benchmarked deconvolution (xCell + MCP-counter) of the 4 MASLD cohorts, on
 ## the symbol-level linear matrices from 06_prep_deconv.R. Writes deconv_xcell.csv
 ## and deconv_mcp.csv, which 08_concordance.R then tests for sex-direction
-## agreement with the singscore results. (Already-R script; tidied to use config.)
+## agreement with the singscore results.
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 suppressMessages({library(xCell); library(data.table)})

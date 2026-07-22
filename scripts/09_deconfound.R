@@ -3,7 +3,6 @@
 ## adjustment on the SAME samples? Fitting on one cohort isolates the effect of
 ## *adjustment* from the effect of *losing samples*, so any change in the sex
 ## beta can only mean metabolic confounding, not lost power.
-## Faithful R port of 09_deconfound.py.
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 

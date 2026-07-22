@@ -3,7 +3,6 @@
 ## signature per sample, across the 4 cohorts, plus covariates. Genes are matched
 ## whether the cohort is indexed by symbol, Ensembl or Entrez.
 ## Writes analysis_matrix.csv (the input to 03/08/09) and signature_defs.json.
-## Faithful R port of 02_build_matrix.py (mygene -> org.Hs.eg.db for ID mapping).
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 source("geo_loaders.R")

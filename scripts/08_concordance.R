@@ -3,7 +3,6 @@
 ## singscore sex DIRECTIONS? Re-fit the same mixed model on the deconvolution
 ## scores and compare the sign of the sex effect to the singscore reference.
 ## We test agreement in DIRECTION, not magnitude (methods never match on scale).
-## Faithful R port of 08_concordance.py.
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 suppressMessages({library(lme4); library(ggplot2)})

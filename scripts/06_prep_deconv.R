@@ -2,7 +2,6 @@
 ## Prepare per-cohort SYMBOL-level, LINEAR-scale matrices for immunedeconv.
 ## Maps Entrez/Ensembl -> HGNC symbol (org.Hs.eg.db), CPM-normalises counts,
 ## de-logs the microarray, collapses duplicate symbols. Writes expr_sym_<GSE>.tsv.
-## Faithful R port of 06_prep_deconv.py (mygene -> org.Hs.eg.db).
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 suppressMessages({library(AnnotationDbi); library(org.Hs.eg.db); library(data.table)})

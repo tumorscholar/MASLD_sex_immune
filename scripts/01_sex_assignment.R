@@ -3,7 +3,6 @@
 ## Recovers sex from XIST (female) vs a 9-gene Y panel (male) by within-cohort
 ## z-scoring; diff = z_Y - z_XIST; call M if diff>0.5, F if diff< -0.5, else
 ## Ambiguous (dropped). Checks calls against recorded sex where available.
-## Faithful R port of 01_sex_assignment.py.
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 source("geo_loaders.R")
@@ -12,7 +11,7 @@ OUTDIR <- file.path(REALDIR, "sex_assign_out"); dir.create(OUTDIR, showWarnings 
 ALL_MARK <- c(FEMALE_MARKERS, MALE_MARKERS)
 
 ## hardcoded cross-refs so we can find markers whether the matrix is indexed by
-## symbol, Ensembl or Entrez (identical to the Python dicts).
+## symbol, Ensembl or Entrez.
 ENSEMBL <- c(XIST="ENSG00000229807", RPS4Y1="ENSG00000129824", DDX3Y="ENSG00000067048",
   EIF1AY="ENSG00000198692", UTY="ENSG00000183878", KDM5D="ENSG00000012817",
   USP9Y="ENSG00000114374", NLGN4Y="ENSG00000165246", ZFY="ENSG00000067646",
