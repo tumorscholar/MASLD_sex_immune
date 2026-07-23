@@ -1,104 +1,103 @@
-# MASLD_sex_immune
+# Sex differences in the hepatic immune landscape of MASLD
 
-Scripts and processed data for a meta-analysis of **sex differences in the hepatic immune landscape of MASLD/MASH**.
+Analysis code and processed data for a transcriptomic meta-analysis of sex
+differences in the hepatic immune compartment of metabolic dysfunction-associated
+steatotic liver disease (MASLD / MASH), built entirely on public data.
 
-The study is built entirely on public data in, published signatures out. The bulk pipeline recovers each patient's sex from expression, scores immune cell-type and functional-state signatures per sample, and tests across four MASLD cohorts jointly which immune readouts are sex-biased once fibrosis stage is accounted for. Each headline finding is then required to survive two fibrosis codings, FDR correction, leave-one-cohort-out, an independent deconvolution method, a metabolic (BMI/T2D/age) deconfounding step, and a disease-free (GTEx) control. Finally the directions are validated at single-cell resolution in our own in-house CITE-seq cohort and four independent public cohorts (section 3.7; combined in Fig 7).
+![Language](https://img.shields.io/badge/language-R-276DC3)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-Everything is written in R and runs in RStudio on the HPC or with plain `Rscript`.
+## Overview
 
----
+The pipeline assigns each sample's sex from expression, scores immune cell-type and
+functional-state signatures per sample, and estimates the sex effect for every
+readout across four MASLD cohorts jointly, adjusting for fibrosis stage. Each
+headline result is required to survive two fibrosis codings, false-discovery-rate
+correction, leave-one-cohort-out resampling, an independent deconvolution method,
+a metabolic (BMI / type-2 diabetes / age) deconfounding step, and a disease-free
+(GTEx) control. The sex directions are then validated at single-cell resolution in
+an in-house CITE-seq cohort and four independent public single-cell cohorts.
 
-## Two axes of the result
+The analysis resolves two axes of sex difference: a **baseline male MAIT-cell bias**,
+present already in disease-free liver and specific to the receptor-defined
+(SLC4A10 / TRAV1-2) MAIT programme; and a **disease-emergent, female-skewed
+programme** (regulatory T cells, CD8 T cells and conventional dendritic cells) that
+appears with disease rather than at baseline.
 
-1. A **baseline male MAIT axis** – higher MAIT abundance in males, present already in disease-free liver (GTEx), receptor-identity specific (SLC4A10/TRAV1-2), and reproduced across bulk, deconvolution, GTEx, and every single-cell cohort tested.
-2. A **disease-emergent female programme** – Treg / CD8 / cDC / Th1 signatures higher in females in MASLD but not in healthy liver, i.e. they appear with disease rather than being baseline.
-
----
-
-## Layout
+## Repository structure
 
 ```
 MASLD_sex_immune/
 ├── README.md
-├── run_all.R  ->  scripts/run_all.R          # end-to-end entry point
-├── data/                                      # small processed data (ships in the repo)
-│   ├── analysis_matrix.csv                    #   per-sample signature scores + covariates
-│   ├── signature_defs.json                    #   marker / signature definitions
-│   ├── deconv_xcell.csv, deconv_mcp.csv       #   deconvolution scores
-│   ├── own_cohort_percell_fractions.csv       #   in-house CITE-seq per-patient fractions (Fig 7)
-│   └── own_cohort_sex.csv                      #   patient -> sex map (Fig 7 provenance route B)
-├── results_R/                                 # regenerated outputs (git-ignored except this note)
-│   ├── tables/                                #   Table 1-4 CSVs + xlsx
-│   └── figures/                               #   Fig 1-8 + Supp as PDF / TIFF / PNG
+├── LICENSE
+├── data/                      Processed inputs that ship with the repository
+│   ├── analysis_matrix.csv        per-sample signature scores and covariates
+│   ├── signature_defs.json        marker and signature definitions
+│   ├── deconv_xcell.csv           xCell deconvolution scores
+│   ├── deconv_mcp.csv             MCP-counter deconvolution scores
+│   ├── own_cohort_percell_fractions.csv   in-house CITE-seq per-patient fractions
+│   └── own_cohort_sex.csv         in-house patient-to-sex map
+├── results_R/                 Regenerated outputs (figures and tables; git-ignored)
 └── scripts/
-    ├── run_all.R                 # runs the whole pipeline in order (analysis -> tables -> figures)
-    ├── install_packages.R        # one-time: install all dependencies
-    ├── 00_config.R               # shared paths, signatures, helpers – edit paths here
-    ├── geo_loaders.R             # shared GEO download / parse helpers
-    ├── 01_sex_assignment.R       # expression-based sex calls (XIST vs Y panel)
-    ├── 02_build_matrix.R         # singscore signature matrix + covariates
-    ├── 03_maineffect.R           # sex main-effect mixed models (the core test)
-    ├── 04_gtex_control.R         # disease-free GTEx liver control (3 models: age / covariate / balanced)
-    ├── 05_export_expr.R          # export linear-scale matrices for deconvolution
-    ├── 06_prep_deconv.R          # symbol-level linear matrices for immunedeconv
-    ├── 07_run_deconv.R           # xCell + MCP-counter deconvolution
-    ├── 08_concordance.R          # deconvolution vs singscore sex directions
-    ├── 09_deconfound.R           # BMI / T2D / age deconfounding (within cohort)
-    ├── sc_build_*.R              # build one Seurat object per public single-cell cohort
-    ├── sc_validate_*.R           # gate cell types + test sex directions per cohort
-    ├── sc_guilliams_clean.R      # patient-level re-analysis (removes a capture artifact)
-    ├── sc_mait_functional.R      # male-vs-female MAIT functional state (abundance not phenotype)
-    ├── sc_build_owncohort.R      # in-house CITE-seq fractions (Fig 7 provenance)
-    ├── sc_meta_forest.R          # Cliff's delta + inverse-variance pooled single-cell meta
-    ├── make_tables.R             # Table 1-4 from the pipeline CSVs
-    ├── 10_figures.R              # Fig 1-7 (PDF + TIFF + PNG)
-    ├── sc_meta_dotplot.R         # Fig 7 (combined in-house + public single-cell)
-    ├── 11_supp_figures.R         # Supp Fig S1-S3
-    └── FIGURES_LIST.md           # figure + table catalogue (main vs supplementary)
+    ├── run_all.R                  end-to-end runner (analysis, tables, figures)
+    ├── install_packages.R         install all dependencies
+    ├── 00_config.R                shared paths, signatures and helpers (edit paths here)
+    ├── geo_loaders.R              GEO download and parsing helpers
+    ├── 01_sex_assignment.R        expression-based sex calls (XIST and Y-panel)
+    ├── 02_build_matrix.R          singscore signature matrix and covariates
+    ├── 03_maineffect.R            sex main-effect mixed models
+    ├── 04_gtex_control.R          disease-free GTEx liver control
+    ├── 05_export_expr.R           linear-scale matrices for deconvolution
+    ├── 06_prep_deconv.R           symbol-level matrices for immunedeconv
+    ├── 07_run_deconv.R            xCell and MCP-counter deconvolution
+    ├── 08_concordance.R           deconvolution vs signature concordance
+    ├── 09_deconfound.R            BMI / type-2 diabetes / age deconfounding
+    ├── sc_build_*.R               build a Seurat object per public single-cell cohort
+    ├── sc_validate_*.R            gate cell types and test sex directions per cohort
+    ├── sc_guilliams_clean.R       patient-level re-analysis of the Guilliams cohort
+    ├── sc_build_owncohort.R       in-house CITE-seq per-patient fractions
+    ├── sc_mait_functional.R       male vs female MAIT functional-state comparison
+    ├── sc_meta_forest.R           Cliff's delta and inverse-variance single-cell meta-analysis
+    ├── make_tables.R              Tables 1 to 5
+    ├── 10_figures.R               Figures 1 to 6
+    ├── sc_meta_dotplot.R          Figure 7 (combined single-cell validation)
+    ├── 11_supp_figures.R          Supplementary Figures S1 to S3
+    └── FIGURES_LIST.md            figure and table catalogue
 ```
 
-## Data
+## Requirements
 
-All primary data are public. The four MASLD cohorts are on NCBI GEO
-(**GSE130970, GSE162694, GSE89632, GSE135251**); healthy-liver data are from
-**GTEx v8**; the single-cell validation cohorts are Andrews 2024 (GSE243981),
-HLiCA, Guilliams 2022 and Ramachandran 2019. Raw data are not redistributed here;
-the scripts fetch them from source. `data/` holds only the small processed tables
-needed to reproduce the results without re-downloading. No controlled-access or
-patient-identifiable data are used. The in-house CITE-seq per-patient fractions
-(`data/own_cohort_percell_fractions.csv`) are aggregate counts only.
-
-## How to run
-
-Install dependencies once:
+R (>= 4.1) with the packages listed in `scripts/install_packages.R`, including
+`data.table`, `lme4`, `lmerTest`, `singscore`, `immunedeconv` (xCell, MCP-counter),
+`Seurat`, `ggplot2`, `fgsea`, `msigdbr` and `openxlsx`. Install them once with:
 
 ```r
 source("scripts/install_packages.R")
 ```
 
-### Everything, in order
+## Quick start
 
-From the repo root:
+Run everything in dependency order (analysis, then tables, then figures) from the
+repository root:
 
 ```r
 setwd("scripts")
 source("run_all.R")
 ```
 
-`run_all.R` runs analysis -> tables -> figures and prints a pass/fail/skip summary.
-Stages are switched with environment variables (all default sensibly):
+`run_all.R` prints a pass / fail / skip summary. Stages are controlled by environment
+variables, all with sensible defaults:
 
-| variable | default | what it controls |
-|----------|---------|------------------|
-| `RUN_BULK`    | on  | bulk pipeline `01`-`09` |
-| `RUN_SC`      | off | single-cell validations (need the large raw downloads) |
-| `RUN_TABLES`  | on  | `make_tables.R` |
-| `RUN_FIGURES` | on  | `10_figures.R`, `sc_meta_dotplot.R`, `11_supp_figures.R` |
+| Variable      | Default | Controls |
+|---------------|---------|----------|
+| `RUN_BULK`    | on      | bulk pipeline (`01`–`09`) |
+| `RUN_SC`      | off     | single-cell validations (require the large raw downloads) |
+| `RUN_TABLES`  | on      | `make_tables.R` |
+| `RUN_FIGURES` | on      | `10_figures.R`, `sc_meta_dotplot.R`, `11_supp_figures.R` |
 
-So a quick "tables + figures from what is already computed" run is just the default
-with `RUN_BULK=0 RUN_SC=0`.
+### Reproduce the bulk results without downloading raw data
 
-### Reproduce the bulk results from the deposited matrix (no downloads)
+The deposited `data/` files reproduce the core results directly:
 
 ```r
 setwd("scripts")
@@ -111,23 +110,30 @@ source("make_tables.R")
 
 ### Full pipeline from raw data
 
-Edit the paths in `00_config.R`, then either run `run_all.R` with `RUN_SC=1`, or
-run the numbered scripts `01`-`09`, the `sc_*` scripts, `make_tables.R`, and the
-figure scripts in that order.
+Edit the paths in `00_config.R`, then run `run_all.R` with `RUN_SC=1`, or run the
+numbered scripts `01`–`09`, the `sc_*` scripts, `make_tables.R` and the figure
+scripts in that order. `FIGURES_LIST.md` maps every figure and table to the script
+that produces it.
 
-## Figure 7 (single-cell validation) provenance
+## Data availability
 
-Figure 7 is a single combined dot plot: the in-house CITE-seq cohort as the first
-column (section 3.7, validation in our own data) followed by the four public
-single-cell cohorts (validation in external data). It is produced by
-`sc_meta_dotplot.R`. The in-house column is drawn from
-`data/own_cohort_percell_fractions.csv`; `sc_build_owncohort.R` regenerates that
-table from the full annotated CITE-seq Seurat object (route A, the version used in
-the paper; RNA + protein cell-type labels) and offers a self-contained marker-panel
-cross-check (route B). The MAIT / Treg / CD8 / cDC gates are identical across the
-in-house and public cohorts, so every column of Figure 7 is methodologically matched.
+All primary data are public. Raw data are not redistributed here; the scripts
+retrieve them from source, and `data/` holds only the small processed inputs needed
+to reproduce the results. No controlled-access or patient-identifiable data are used;
+the in-house CITE-seq file contains aggregate per-patient counts only.
 
-## Code availability
+| Source | Accession |
+|--------|-----------|
+| MASLD bulk cohorts | GEO GSE130970, GSE162694, GSE89632, GSE135251 |
+| Disease-free liver | GTEx v8 |
+| Single-cell (Andrews 2024) | GEO GSE243981 |
+| Single-cell (HLiCA, Guilliams 2022, Ramachandran 2019) | published atlases |
 
-Analysis code and the deposited processed data are archived in this repository.
-A versioned release is assigned a Zenodo DOI on acceptance.
+## Citation
+
+If you use this code, please cite the associated manuscript (in preparation). A
+versioned release will be archived with a Zenodo DOI on acceptance.
+
+## License
+
+Released under the MIT License. See [LICENSE](LICENSE).
