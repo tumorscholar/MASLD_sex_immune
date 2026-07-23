@@ -3,7 +3,7 @@
 ## (Andrews healthy liver). Asks: beyond being more frequent in men, are male MAIT
 ## cells transcriptionally different (e.g. more cytotoxic / pro-inflammatory)?
 ##
-## Rigorous design (mirrors your T-cell paper):
+## Design:
 ##   1. gate MAIT (T cell & SLC4A10/TRAV1-2+) in healthy donors
 ##   2. PSEUDOBULK MAIT per donor (sum counts) -> no per-cell pseudoreplication
 ##   3. male-vs-female DE with edgeR quasi-likelihood
@@ -12,10 +12,10 @@
 ##      activation) compared by sex
 ## Outputs DE + fgsea + state tables and figures (PDF+TIFF+PNG).
 ## ===========================================================================
-OBJ_PATH  <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/andrews2024/GSE243981_seurat.rds"
+OBJ_PATH  <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/andrews2024/GSE243981_seurat.rds")
 GROUP_KEEP<- "healthy"     # same-stage comparison (constitutional MAIT)
 MIN_MAIT  <- 10            # donors need >= this many MAIT cells to contribute
-OUTDIR    <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/andrews2024/out"
+OUTDIR    <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/andrews2024/out")
 ## ===========================================================================
 dir.create(OUTDIR, showWarnings=FALSE, recursive=TRUE)
 need <- function(p, bioc=FALSE) if (!requireNamespace(p, quietly=TRUE)) {
@@ -84,6 +84,7 @@ gs <- function(cat, sub=NULL) { m <- if(is.null(sub)) msigdbr(species="Homo sapi
  msigdbr(species="Homo sapiens", category=cat, subcategory=sub)
 split(m$gene_symbol, m$gs_name) }
 run_fgsea <- function(paths, tag) {
+ set.seed(1)                                    # fgsea multilevel is randomised
  fg <- fgsea(paths, ranks, minSize=10, maxSize=500)
  fg <- fg[order(fg$padj), ]; fg$leadingEdge <- vapply(fg$leadingEdge, function(x) paste(head(x,15),collapse=","), character(1))
  write.csv(as.data.frame(fg), file.path(OUTDIR, paste0("MAIT_fgsea_",tag,".csv")), row.names=FALSE)

@@ -11,7 +11,7 @@
 ## (_pctT/_pctImm) are both accepted and shown as percentages.
 ## ===========================================================================
 OUTBASE <- Sys.getenv("MASLD_SC",
-             "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell")
+             "/path/to/MASLD_sex_meta/single_cell")
 FIGOUT  <- file.path(OUTBASE, "meta"); dir.create(FIGOUT, showWarnings=FALSE, recursive=TRUE)
 ## where the in-house fractions live (shipped in the repo under data/)
 OWN_CSV <- Sys.getenv("OWN_CITESEQ_CSV", "")
@@ -87,12 +87,13 @@ p <- ggplot(D, aes(sex, value, colour=sex)) +
         strip.background=element_rect(fill="grey95", colour=NA),
         strip.placement="outside", plot.subtitle=element_text(size=8, colour="grey40"))
 
-## save the combined Figure 7 in submission formats: PDF (vector) + TIFF + PNG
+## save the combined Figure 7 alongside Figs 1-6 in the main figures folder,
+## in submission formats: PDF (vector) + TIFF (300 dpi, LZW) + PNG
+FIGDIR <- Sys.getenv("MASLD_FIGDIR", file.path(dirname(OUTBASE), "figures"))
+dir.create(FIGDIR, showWarnings = FALSE, recursive = TRUE)
 NM <- "Fig7_singlecell_combined"
-ggsave(file.path(FIGOUT, paste0(NM,".pdf")),  p, width=11, height=6.5)
-ggsave(file.path(FIGOUT, paste0(NM,".tiff")), p, width=11, height=6.5, dpi=300, compression="lzw")
-ggsave(file.path(FIGOUT, paste0(NM,".png")),  p, width=11, height=6.5, dpi=300)
-cat("Wrote", NM, ".{pdf,tiff,png} and sc_meta_donor_data.csv\n")
+ggsave(file.path(FIGDIR, paste0(NM,".pdf")),  p, width=11, height=6.5)
+ggsave(file.path(FIGDIR, paste0(NM,".tiff")), p, width=11, height=6.5, dpi=300, compression="lzw")
+ggsave(file.path(FIGDIR, paste0(NM,".png")),  p, width=11, height=6.5, dpi=300)
+cat("Wrote", NM, "(pdf, tiff, png) to", FIGDIR, "and sc_meta_donor_data.csv to", FIGOUT, "\n")
 cat("Columns plotted (left to right):", paste(levels(D$cohort), collapse=" | "), "\n")
-cat("To embed in the manuscript, copy", paste0(NM,".png"),
-    "into the figures folder read by make_paper (FIGDIR).\n")

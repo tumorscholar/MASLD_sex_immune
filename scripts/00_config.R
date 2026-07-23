@@ -6,10 +6,10 @@
 ## ---------------------------------------------------------------------------
 
 ## ---- paths ----------------------------------------------------------------
-## On Apocrita these point at the lab data area and your scratch space.
+## By default these are placeholder paths; set them to your data and scratch
 ## On a laptop, point them anywhere writable (they are created if missing).
-REALDIR <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
-SCRATCH <- Sys.getenv("MASLD_SCRATCH", "/gpfs/scratch/hdx044/masld_meta")
+REALDIR <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
+SCRATCH <- Sys.getenv("MASLD_SCRATCH", "/path/to/scratch/masld_meta")
 GEO_CACHE <- file.path(SCRATCH, "geo_cache")
 FIGDIR  <- file.path(REALDIR, "figures")
 for (d in c(REALDIR, SCRATCH, GEO_CACHE, FIGDIR))

@@ -4,11 +4,11 @@
 ## test the DISEASE-EMERGENT female Treg/CD8/cDC prediction (in a fibrosis
 ## context – mixed etiology, not MASLD-specific).
 ## ===========================================================================
-OBJ_PATH   <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/ramachandran/GSE136103_seurat.rds"
+OBJ_PATH   <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/ramachandran/GSE136103_seurat.rds")
 DONOR_COL  <- "donor"
 GROUP_COL  <- "group"      # healthy / cirrhotic
 SEX_COL    <- NA           # not recorded -> assign from expression
-OUTDIR     <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/ramachandran/out"
+OUTDIR     <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/ramachandran/out")
 DATASET    <- "Ramachandran2019"
 ## ===========================================================================
 dir.create(OUTDIR, showWarnings = FALSE, recursive = TRUE)

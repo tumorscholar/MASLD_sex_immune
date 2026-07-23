@@ -6,7 +6,7 @@
 ##   S2  single-cell meta-analysis forest (MAIT / Treg / CD8)
 ##   S3  Guilliams QC – immune capture by sex + sex x diet
 ## ===========================================================================
-RD  <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
+RD  <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
 SC  <- file.path(RD, "single_cell")
 FIG <- file.path(RD, "figures"); dir.create(FIG, showWarnings=FALSE, recursive=TRUE)
 MALE <- "#2c7fb8"; FEM <- "#d95f0e"; MIN_T <- 50

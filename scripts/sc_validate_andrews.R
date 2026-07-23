@@ -8,11 +8,11 @@
 ## Method: pseudobulk each donor -> assign sex (XIST vs Y panel); gate the four
 ## populations per cell from markers; per-donor fractions -> Wilcoxon by sex.
 ## ===========================================================================
-OBJ_PATH   <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/andrews2024/GSE243981_seurat.rds"
+OBJ_PATH   <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/andrews2024/GSE243981_seurat.rds")
 DONOR_COL  <- "donor"    # per the build script
 GROUP_COL  <- "group"    # healthy / PSC / PBC  (set NA if none)
 SEX_COL    <- NA         # Andrews doesn't record sex in GEO -> assign from expression
-OUTDIR     <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/andrews2024/out"
+OUTDIR     <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/andrews2024/out")
 ## ===========================================================================
 DATASET <- "Andrews2024"
 dir.create(OUTDIR, showWarnings = FALSE, recursive = TRUE)

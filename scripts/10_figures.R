@@ -12,7 +12,7 @@
 ## sc_meta_dotplot.R. This script also regenerates the in-house panel of
 ## Supplementary Figure S1 (see the S1 block below).
 ## ===========================================================================
-RD     <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
+RD     <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
 SEXDIR <- if (dir.exists(file.path(RD,"sex_assign_out"))) file.path(RD,"sex_assign_out") else path.expand("~/sex_assign_out")
 FIG    <- file.path(RD, "figures"); dir.create(FIG, showWarnings=FALSE, recursive=TRUE)
 MALE <- "#2c7fb8"; FEM <- "#d95f0e"; GREY <- "#888888"

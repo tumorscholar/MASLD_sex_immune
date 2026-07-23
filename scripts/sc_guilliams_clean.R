@@ -8,9 +8,9 @@
 ##   - require >=50 T cells / patient so no fraction rests on a few cells
 ##   - stratify by diet (Lean vs Obese) and expose the sex x diet confound
 ## ===========================================================================
-OBJ_PATH <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/guilliams/GSE192742_seurat.rds"
-ANNOT    <- "/gpfs/scratch/hdx044/guilliams/annot_humanAll.csv"
-OUTDIR   <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/guilliams/out"
+OBJ_PATH <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/guilliams/GSE192742_seurat.rds")
+ANNOT    <- file.path(Sys.getenv("MASLD_SCRATCH", "/path/to/scratch"), "guilliams/annot_humanAll.csv")
+OUTDIR   <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/guilliams/out")
 MIN_T    <- 50    # minimum T cells per patient to trust a fraction
 ## ===========================================================================
 dir.create(OUTDIR, showWarnings = FALSE, recursive = TRUE)

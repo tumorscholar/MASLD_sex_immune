@@ -6,10 +6,10 @@
 ##
 ## DOWNLOAD (to scratch): on cellxgene.cziscience.com, open the HLiCA / integrated
 ## healthy human liver atlas dataset -> Download -> choose the Seurat (.rds) file
-## (or .h5ad). Put it in /gpfs/scratch/hdx044/hlica/ and point OBJ_PATH at it.
+## (or .h5ad). Put it in /path/to/scratch/hlica/ and point OBJ_PATH at it.
 ## ===========================================================================
-OBJ_PATH <- "/gpfs/scratch/hdx044/hlica/hlica_lymphocyte.h5ad"   # CELLxGENE .h5ad (or .rds)
-OUTDIR   <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/hlica/out"
+OBJ_PATH <- file.path(Sys.getenv("MASLD_SCRATCH", "/path/to/scratch"), "hlica/hlica_lymphocyte.h5ad")   # CELLxGENE .h5ad (or .rds)
+OUTDIR   <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/hlica/out")
 MIN_T    <- 50
 ## ===========================================================================
 DATASET <- "HLiCA"

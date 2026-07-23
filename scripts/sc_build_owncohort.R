@@ -24,13 +24,13 @@
 ROUTE <- Sys.getenv("OWNCOHORT_ROUTE", "A")   # "A" = Seurat object, "B" = panel
 
 ## ---- shared config ---------------------------------------------------------
-REALDIR <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
+REALDIR <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
 OUT_CSV <- file.path(REALDIR, "single_cell", "own_citeseq",
                      "own_cohort_percell_fractions.csv")
 dir.create(dirname(OUT_CSV), showWarnings = FALSE, recursive = TRUE)
 
 ## the four headline populations, gated identically to the public-cohort
-## validations (sc_validate_andrews.R etc.) so Fig 7 and Fig 8 share a method.
+## validations (sc_validate_andrews.R etc.) so the in-house and public single-cell analyses share the same gating.
 MARK <- list(
   Tcell  = c("CD3D","CD3E","CD3G"),
   MAIT   = c("SLC4A10","TRAV1-2"),

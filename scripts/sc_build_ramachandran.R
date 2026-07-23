@@ -4,13 +4,13 @@
 ## blood/PBMC, and mouse samples. Each donor tagged healthy / cirrhotic.
 ## Data are matrix-market triplets (barcodes/genes/matrix.mtx.gz) -> ReadMtx.
 ## Download first:
-##   mkdir -p /gpfs/scratch/hdx044/ramachandran
-##   cd /gpfs/scratch/hdx044/ramachandran
+##   mkdir -p /path/to/scratch/ramachandran
+##   cd /path/to/scratch/ramachandran
 ##   wget 'https://ftp.ncbi.nlm.nih.gov/geo/series/GSE136nnn/GSE136103/suppl/GSE136103_RAW.tar'
 ##   tar -xvf GSE136103_RAW.tar
 ## ===========================================================================
-IN_DIR   <- "/gpfs/scratch/hdx044/ramachandran"
-OUT_RDS  <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/ramachandran/GSE136103_seurat.rds"
+IN_DIR   <- file.path(Sys.getenv("MASLD_SCRATCH", "/path/to/scratch"), "ramachandran")
+OUT_RDS  <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/ramachandran/GSE136103_seurat.rds")
 MIN_GENES <- 200; MAX_GENES <- 6000; MAX_MT <- 20
 ## ===========================================================================
 suppressMessages({library(Seurat); library(Matrix)})

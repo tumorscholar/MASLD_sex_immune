@@ -1,7 +1,7 @@
 ## make_tables.R --------------------------------------------------------------
 ## Builds the manuscript tables from the pipeline output CSVs, so every number
-## in the paper traces back to a script. Writes each table as its own CSV in
-## results_R/tables/ and, if openxlsx is installed, a single workbook
+## in the paper traces back to a script. Writes each table as a CSV under
+## $MASLD_REALDIR/tables/ and, if openxlsx is installed, a single workbook
 ## MASLD_sex_tables.xlsx with one sheet per table.
 ##
 ##   Table 1   cohort / dataset characteristics   (analysis_matrix.csv)
@@ -14,7 +14,7 @@
 ## Run after 03 (main effect), 04 (GTEx), 08 (concordance) and the single-cell
 ## validations.
 ## ===========================================================================
-RD  <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
+RD  <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
 SC  <- file.path(RD, "single_cell")
 TAB <- file.path(RD, "tables"); dir.create(TAB, showWarnings = FALSE, recursive = TRUE)
 rd  <- function(p) if (file.exists(p)) read.csv(p, stringsAsFactors = FALSE) else { cat("missing:", p, "\n"); NULL }

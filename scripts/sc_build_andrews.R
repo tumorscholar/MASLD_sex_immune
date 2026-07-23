@@ -6,8 +6,8 @@
 ## No clustering/annotation needed – the validation gates cell types from markers.
 ## Run in RStudio on the HPC after untarring GSE243981_RAW.tar.
 ## ===========================================================================
-IN_DIR   <- "/gpfs/scratch/hdx044/andrews2024"   # RAW data on SCRATCH (extracted tar)
-OUT_RDS  <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/andrews2024/GSE243981_seurat.rds"
+IN_DIR   <- file.path(Sys.getenv("MASLD_SCRATCH", "/path/to/scratch"), "andrews2024")   # RAW data on SCRATCH (extracted tar)
+OUT_RDS  <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/andrews2024/GSE243981_seurat.rds")
 MIN_GENES <- 200; MAX_GENES <- 6000; MAX_MT <- 20
 ## ===========================================================================
 suppressMessages({library(Seurat); library(Matrix)})

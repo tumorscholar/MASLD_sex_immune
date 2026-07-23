@@ -2,16 +2,16 @@
 ## Build a Seurat object from the Guilliams 2022 Liver Cell Atlas HUMAN data.
 ## Unlike the GEO per-sample tarballs, this is ONE matrix + an annotation CSV.
 ## Download first (to scratch):
-##   mkdir -p /gpfs/scratch/hdx044/guilliams && cd /gpfs/scratch/hdx044/guilliams
+##   mkdir -p /path/to/scratch/guilliams && cd /path/to/scratch/guilliams
 ##   wget https://www.livercellatlas.org/data_files/toDownload/rawData_human.zip
 ##   wget https://www.livercellatlas.org/data_files/toDownload/annot_humanAll.csv
 ##   unzip rawData_human.zip
 ## Then run this. It auto-detects the matrix files and the donor/group columns;
 ## check the "Annotation columns" print and adjust DONOR_COL/GROUP_COL if needed.
 ## ===========================================================================
-IN_DIR   <- "/gpfs/scratch/hdx044/guilliams"
+IN_DIR   <- file.path(Sys.getenv("MASLD_SCRATCH", "/path/to/scratch"), "guilliams")
 ANNOT    <- file.path(IN_DIR, "annot_humanAll.csv")
-OUT_RDS  <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell/guilliams/GSE192742_seurat.rds"
+OUT_RDS  <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell/guilliams/GSE192742_seurat.rds")
 DONOR_COL <- NA   # set to a column name after you see the print; NA = auto-detect (patient/sample/…)
 GROUP_COL <- NA   # disease/diet/condition column if present; NA = auto-detect, else "all"
 MIN_GENES <- 200; MAX_GENES <- 6000; MAX_MT <- 20
@@ -62,4 +62,4 @@ cat("\nAfter QC:", ncol(obj), "cells |", length(unique(obj$donor)), "donors\n")
 cat("Donors by group:\n"); print(tapply(obj$donor, obj$group, function(x) length(unique(x))))
 saveRDS(obj, OUT_RDS, compress = FALSE)
 cat("\nWrote", OUT_RDS, "\n")
-cat("Next: run sc_validate_guilliams.R (DONOR_COL='donor', GROUP_COL='group').\n")
+cat("Next: run sc_guilliams_clean.R (patient-level, diet-stratified Guilliams analysis).\n")

@@ -80,24 +80,9 @@ if (nrow(prim)) {
               ag, nrow(prim), 100*ag/nrow(prim)))
 }
 
-## ---- figure: singscore beta vs xCell beta ----
-plotd <- xc[!is.na(xc$singscore_beta) & !is.na(xc$deconv_beta), ]
-if (nrow(plotd)) {
-  lim <- max(0.6, max(abs(c(plotd$singscore_beta, plotd$deconv_beta))) * 1.2)
-  plotd$col <- ifelse(plotd$singscore_beta > 0, MALE_COL, FEM_COL)
-  p <- ggplot(plotd, aes(singscore_beta, deconv_beta)) +
-    annotate("rect", xmin=0, xmax=lim, ymin=0, ymax=lim, fill="#eef5ee") +
-    annotate("rect", xmin=-lim, xmax=0, ymin=-lim, ymax=0, fill="#eef5ee") +
-    geom_hline(yintercept=0, linewidth=.3) + geom_vline(xintercept=0, linewidth=.3) +
-    geom_point(colour=plotd$col, size=3, shape=21, fill=plotd$col, stroke=.4) +
-    geom_text(aes(label=deconv_celltype), size=2.5, hjust=-0.1, vjust=-0.4) +
-    coord_cartesian(xlim=c(-lim,lim), ylim=c(-lim,lim)) +
-    labs(x="singscore sex beta (>0 male)", y="xCell sex beta (>0 male)",
-         title="Benchmarked deconvolution reproduces singscore sex directions") +
-    theme_classic(base_size = 9)
-  ggsave(file.path(FIGDIR, "Fig6_deconv_concordance.png"), p, width=5.6, height=5.2, dpi=300)
-  cat("\nwrote figures/Fig6_deconv_concordance.png\n")
-}
+## Figure 6 (singscore beta vs xCell beta) is produced by 10_figures.R from the
+## deconv_concordance.csv written above, so the whole figure set comes from one
+## script. This step is analysis-only.
 cat("\nNOTE: MAIT is not represented in xCell/MCP-counter references (TCR-defined, not in\n")
 cat("bulk deconvolution signatures); its confirmation rests on the receptor-identity test,\n")
 cat("the GTEx constitutional result, and the single-cell atlas. Wrote deconv_concordance.csv\n")

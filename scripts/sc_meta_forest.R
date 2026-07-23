@@ -5,7 +5,7 @@
 ## draws a forest plot with an inverse-variance pooled estimate, for MAIT / Treg /
 ## CD8. Run on the HPC after the per-cohort validations have written their CSVs.
 ## ===========================================================================
-OUTBASE <- "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta/single_cell"
+OUTBASE <- file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell")
 FIGOUT  <- file.path(OUTBASE, "meta"); dir.create(FIGOUT, showWarnings=FALSE, recursive=TRUE)
 MIN_T   <- 50
 suppressMessages(library(ggplot2))

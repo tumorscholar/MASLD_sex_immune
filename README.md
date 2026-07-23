@@ -56,7 +56,6 @@ MASLD_sex_immune/
     ├── sc_build_guilliams.R       build a Seurat object (Guilliams / Liver Cell Atlas)
     ├── sc_build_ramachandran.R    build a Seurat object (Ramachandran 2019)
     ├── sc_validate_andrews.R      gate cell types and test sex directions (Andrews)
-    ├── sc_validate_guilliams.R    gate cell types and test sex directions (Guilliams)
     ├── sc_validate_hlica.R        gate cell types and test sex directions (HLiCA)
     ├── sc_validate_ramachandran.R gate cell types and test sex directions (Ramachandran)
     ├── sc_guilliams_clean.R       patient-level re-analysis of the Guilliams cohort
@@ -79,6 +78,10 @@ R (>= 4.1) with the packages listed in `scripts/install_packages.R`, including
 ```r
 source("scripts/install_packages.R")
 ```
+
+For exact reproducibility, capture package versions with `sessionInfo()` after
+installation, or manage them with [renv](https://rstudio.github.io/renv/)
+(`renv::init()` then `renv::snapshot()`).
 
 ## Quick start
 
@@ -131,8 +134,10 @@ the in-house CITE-seq file contains aggregate per-patient counts only.
 |--------|-----------|
 | MASLD bulk cohorts | GEO GSE130970, GSE162694, GSE89632, GSE135251 |
 | Disease-free liver | GTEx v8 |
-| Single-cell (Andrews 2024) | GEO GSE243981 |
-| Single-cell (HLiCA, Guilliams 2022, Ramachandran 2019) | published atlases |
+| Single-cell, Andrews 2024 | GEO GSE243981 |
+| Single-cell, Ramachandran 2019 | GEO GSE136103 |
+| Single-cell, Guilliams 2022 (Liver Cell Atlas) | GEO GSE192742 |
+| Single-cell, HLiCA | CZ CELLxGENE (cellxgene.cziscience.com) |
 
 ## Citation
 

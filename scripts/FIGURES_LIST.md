@@ -1,9 +1,9 @@
 # Figure and table catalogue – sex x MASLD hepatic-immune study
 
 Every figure and table in the manuscript is regenerated from the pipeline output
-CSVs. Figures are written to `results_R/figures/` as **PDF (vector) + TIFF
-(300 dpi, LZW) + PNG**; tables to `results_R/tables/` as CSV plus a combined
-`MASLD_sex_tables.xlsx`.
+CSVs. Outputs are written under your analysis output directory (`MASLD_REALDIR`):
+figures to the `figures/` subfolder as **PDF (vector) + TIFF (300 dpi, LZW) + PNG**,
+and tables to the `tables/` subfolder as CSV plus a combined `MASLD_sex_tables.xlsx`.
 
 ## How to generate everything
 
