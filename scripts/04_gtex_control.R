@@ -1,35 +1,33 @@
 ## 04_gtex_control.R ----------------------------------------------------------
 ## Disease-specificity control. Score the identical immune readouts in GTEx
-## disease-free liver (~n=226) and test the sex effect, to ask whether each
-## MASLD sex bias is CONSTITUTIONAL (present in healthy liver too) or
-## DISEASE-EMERGENT (appears only in MASLD).
-##   readout ~ sexM + age   (plain OLS; GTEx is a single cohort)
+## disease-free liver and test the sex effect, to ask whether each MASLD sex bias
+## is CONSTITUTIONAL (present in healthy liver too) or DISEASE-EMERGENT.
 ##
-## NOTE (known limitation, flagged by review): this baseline model adjusts only
-## for age. GTEx liver is post-mortem, immune-poor and not sex-balanced; the
-## planned strengthening is to add technical covariates (RIN = SMRIN,
-## ischaemic time = SMTSISCH, centre = SMCENTER) and sex-balance the comparison.
-## Those columns live in the SampleAttributes file already downloaded below.
+## The sex effect is estimated under three increasingly strict models, so the
+## conclusion does not rest on a minimally-adjusted comparison:
+##   A) age-only            readout ~ sexM + age
+##   B) covariate-adjusted  readout ~ sexM + age + RIN + ischaemic time + centre
+##   C) sex-balanced        model B on K balanced male/female subsamples (GTEx
+##      liver is male-skewed); reports median beta + direction consistency.
+## RIN = SMRIN, ischaemic time = SMTSISCH, centre = SMCENTER (SampleAttributes).
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 suppressMessages(library(data.table))
+set.seed(1)
+K_BAL <- 100   # balanced subsamples for model C
 
 BASE <- "https://storage.googleapis.com/adult-gtex"
 FILES <- c(
-  attr = paste0(BASE, "/annotations/v8/metadata-files/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt"),
-  phen = paste0(BASE, "/annotations/v8/metadata-files/GTEx_Analysis_v8_Annotations_SubjectPhenotypesDS.txt"),
-  tpm  = paste0(BASE, "/bulk-gex/v8/rna-seq/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz")
+ attr = paste0(BASE, "/annotations/v8/metadata-files/GTEx_Analysis_v8_Annotations_SampleAttributesDS.txt"),
+ phen = paste0(BASE, "/annotations/v8/metadata-files/GTEx_Analysis_v8_Annotations_SubjectPhenotypesDS.txt"),
+ tpm  = paste0(BASE, "/bulk-gex/v8/rna-seq/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_tpm.gct.gz")
 )
 fetch <- function(k) {
-  p <- file.path(SCRATCH, basename(FILES[k]))
-  if (!file.exists(p)) {
-    message("  downloading ", k)
-    download.file(FILES[k], p, mode = "wb", quiet = TRUE)
-  }
-  p
+ p <- file.path(SCRATCH, basename(FILES[k]))
+ if (!file.exists(p)) { message("  downloading ", k); download.file(FILES[k], p, mode="wb", quiet=TRUE) }
+ p
 }
 
-## GTEx-specific readout sets (includes the MAIT receptor-specific / promiscuous splits)
 GT_CELLTYPE <- CELLTYPE
 GT_CELLTYPE$ct_MAITspec    <- c("SLC4A10","TRAV1-2")
 GT_CELLTYPE$ct_MAITpromisc <- c("KLRB1","RORC","ZBTB16")
@@ -37,82 +35,99 @@ GT_STATE <- STATE[c("st_CD8_cytotox","st_Th1","st_Th17","st_cytotoxCD4","st_sene
 MASLD_DIR <- c(ct_MAIT="MALE", ct_MAITspec="MALE", ct_Treg="female",
                ct_CD8T="female", ct_DC="female", st_Th1="female")
 
-## ---- annotations ----
+## ---- annotations (keep the technical covariates for liver samples) ----
 message("Fetching GTEx annotations...")
 attr <- fread(fetch("attr"), sep = "\t")
 phen <- fread(fetch("phen"), sep = "\t")
-liver <- attr[SMTSD == "Liver", SAMPID]
+liverA <- attr[SMTSD == "Liver", .(SAMPID, SMRIN, SMTSISCH, SMCENTER)]
+liver  <- liverA$SAMPID
 cat("GTEx liver samples:", length(liver), "\n")
 setkey(phen, SUBJID)
-sid <- function(s) vapply(strsplit(s, "-"), function(x) paste(x[1:2], collapse = "-"), character(1))
+sid <- function(s) vapply(strsplit(s, "-"), function(x) paste(x[1:2], collapse="-"), character(1))
 
-## ---- stream the gene-TPM gct, keeping only liver columns (memory-safe) ----
+## ---- stream the gene-TPM gct, liver columns only (memory-safe) ----
 message("Reading GTEx gene TPM (streaming liver columns only)...")
 con <- gzfile(fetch("tpm"), "rt")
-readLines(con, 2)                                  # skip the 2 gct header lines
-header <- strsplit(readLines(con, 1), "\t")[[1]]
-di <- which(header == "Description")
-liv <- liver[liver %in% header]
-li  <- match(liv, header)
+readLines(con, 2); header <- strsplit(readLines(con, 1), "\t")[[1]]
+di <- which(header == "Description"); liv <- liver[liver %in% header]; li <- match(liv, header)
 genes <- character(0); mat <- vector("list", 0); k <- 0
 repeat {
-  chunk <- readLines(con, 2000)
-  if (length(chunk) == 0) break
-  sp <- strsplit(chunk, "\t")
-  genes <- c(genes, vapply(sp, function(p) p[di], character(1)))
-  for (p in sp) { k <- k + 1; mat[[k]] <- as.numeric(p[li]) }
+ chunk <- readLines(con, 2000); if (length(chunk) == 0) break
+ sp <- strsplit(chunk, "\t")
+ genes <- c(genes, vapply(sp, function(p) p[di], character(1)))
+ for (p in sp) { k <- k + 1; mat[[k]] <- as.numeric(p[li]) }
 }
 close(con)
 M <- do.call(rbind, mat); rownames(M) <- genes; colnames(M) <- liv
-M <- M[!duplicated(rownames(M)), , drop = FALSE]
-M <- log2(pmax(M, 0) + 1)
+M <- M[!duplicated(rownames(M)), , drop = FALSE]; M <- log2(pmax(M, 0) + 1)
 cat("Expression matrix:", nrow(M), "x", ncol(M), "\n")
 
 ## ---- score ----
-ng <- nrow(M); ranks <- rank_matrix(M)
-score <- list()
-for (nm in names(GT_CELLTYPE)) {
-  s <- singscore_custom(ranks, ng, GT_CELLTYPE[[nm]]); if (!is.null(s)) score[[nm]] <- s
-}
-for (nm in names(GT_STATE)) {
-  s <- singscore_custom(ranks, ng, GT_STATE[[nm]]$up, GT_STATE[[nm]]$down); if (!is.null(s)) score[[nm]] <- s
-}
-S <- as.data.frame(score)                          # samples x readouts
-## singscore_custom returns vectors named by sample (colMeans keeps colnames of M)
-S$SAMPID <- rownames(S)
+ng <- nrow(M); ranks <- rank_matrix(M); score <- list()
+for (nm in names(GT_CELLTYPE)) { s <- singscore_custom(ranks, ng, GT_CELLTYPE[[nm]]); if(!is.null(s)) score[[nm]] <- s }
+for (nm in names(GT_STATE))    { s <- singscore_custom(ranks, ng, GT_STATE[[nm]]$up, GT_STATE[[nm]]$down); if(!is.null(s)) score[[nm]] <- s }
+S <- as.data.frame(score); S$SAMPID <- rownames(S)
 
-## ---- donor metadata ----
-S$subj <- sid(S$SAMPID)
-S$SEX  <- phen[S$subj, SEX]
-S$AGE  <- phen[S$subj, AGE]
+## ---- donor + technical metadata ----
+S$subj <- sid(S$SAMPID); S$SEX <- phen[S$subj, SEX]; S$AGE <- phen[S$subj, AGE]
 S$sexM <- as.numeric(S$SEX == 1)
-agemid <- function(a) vapply(a, function(v) {
-  z <- strsplit(v, "-")[[1]]; if (length(z)==2) (as.numeric(z[1])+as.numeric(z[2]))/2 else NA_real_
-}, numeric(1))
+agemid <- function(a) vapply(a, function(v){ z<-strsplit(v,"-")[[1]]; if(length(z)==2)(as.numeric(z[1])+as.numeric(z[2]))/2 else NA_real_ }, numeric(1))
 S$age <- agemid(S$AGE)
+S <- merge(S, as.data.frame(liverA), by = "SAMPID", all.x = TRUE)
+S$SMRIN <- as.numeric(S$SMRIN); S$SMTSISCH <- as.numeric(S$SMTSISCH); S$SMCENTER <- factor(S$SMCENTER)
 S <- S[!is.na(S$sexM), , drop = FALSE]
-cat(sprintf("GTEx liver donors: M=%d F=%d\n", sum(S$sexM==1), sum(S$sexM==0)))
+cat(sprintf("GTEx liver donors: M=%d F=%d | RIN available=%d, ischaemic-time=%d\n",
+            sum(S$sexM==1), sum(S$sexM==0), sum(!is.na(S$SMRIN)), sum(!is.na(S$SMTSISCH))))
 
-## ---- sex effect in disease-free liver ----
-cat("\n==== SEX effect in DISEASE-FREE GTEx liver (readout ~ sexM + age) ====\n")
-cat("(beta>0 = higher in MALES; compare 'GTEx_dir' vs 'MASLD_dir')\n")
-readout_names <- c(names(GT_CELLTYPE), names(GT_STATE))
-rows <- list()
+## ---- sex-effect estimator under an arbitrary right-hand side ----
+fit_beta <- function(d, nm, rhs) {
+ vars <- c(nm, all.vars(as.formula(paste("~", rhs))))
+ d <- d[stats::complete.cases(d[, intersect(vars, names(d))]), , drop = FALSE]
+ if (nrow(d) < 10) return(c(beta=NA, p=NA, n=nrow(d)))
+ d[[nm]] <- zscore(d[[nm]])
+ f <- tryCatch(lm(as.formula(paste0(nm, " ~ ", rhs)), d), error = function(e) NULL)
+ if (is.null(f)) return(c(beta=NA, p=NA, n=nrow(d)))
+ co <- summary(f)$coefficients
+ if (!"sexM" %in% rownames(co)) return(c(beta=NA, p=NA, n=nrow(d)))
+ c(beta=co["sexM","Estimate"], p=co["sexM","Pr(>|t|)"], n=nrow(d))
+}
+COV_RHS <- "sexM + age + SMRIN + SMTSISCH + SMCENTER"
+balanced <- function(d, nm, K = K_BAL) {
+ vars <- c(nm, "sexM","age","SMRIN","SMTSISCH","SMCENTER")
+ d <- d[stats::complete.cases(d[, vars]), , drop = FALSE]
+ Fi <- which(d$sexM==0); Mi <- which(d$sexM==1); nF <- length(Fi)
+ if (nF < 5 || length(Mi) < 5) return(c(beta=NA, consist=NA))
+ bs <- numeric(0)
+ for (i in 1:K) { samp <- d[c(Fi, sample(Mi, nF)), , drop=FALSE]
+ b <- fit_beta(samp, nm, COV_RHS)["beta"]; if (!is.na(b)) bs <- c(bs, b) }
+ md <- median(bs, na.rm=TRUE); c(beta=md, consist=mean(sign(bs)==sign(md)))
+}
+
+## ---- run all three models per readout ----
+cat("\n==== SEX effect in DISEASE-FREE GTEx liver – three models ====\n")
+readout_names <- c(names(GT_CELLTYPE), names(GT_STATE)); rows <- list()
 for (nm in readout_names) {
-  if (!nm %in% names(S)) next
-  d <- S[!is.na(S[[nm]]), , drop = FALSE]; d[[nm]] <- zscore(d[[nm]])
-  fit <- tryCatch(lm(as.formula(sprintf("%s ~ sexM + age", nm)), d), error = function(e) NULL)
-  if (is.null(fit)) next
-  co <- summary(fit)$coefficients
-  b <- co["sexM","Estimate"]; p <- co["sexM","Pr(>|t|)"]
-  gd <- if (b > 0) "MALE" else "female"
-  md <- if (nm %in% names(MASLD_DIR)) MASLD_DIR[[nm]] else "-"
-  flag <- if (md != "-") (if (md == gd) "SAME" else "**DIFFERENT (disease-specific)**") else ""
-  rows[[length(rows)+1]] <- data.frame(readout = nm, beta = round(b,3), p = round(p,4),
-    GTEx_dir = gd, MASLD_dir = md, verdict = flag, stringsAsFactors = FALSE)
+ if (!nm %in% names(S)) next
+ a <- fit_beta(S, nm, "sexM + age")                 # A age-only
+ b <- fit_beta(S, nm, COV_RHS)                       # B covariate-adjusted
+ cc <- balanced(S, nm)                               # C sex-balanced (median of K)
+ dir <- function(x) if (is.na(x)) "-" else if (x>0) "MALE" else "female"
+ md  <- if (nm %in% names(MASLD_DIR)) MASLD_DIR[[nm]] else "-"
+ gdc <- dir(b["beta"])                               # covariate-adjusted direction = primary
+ verdict <- if (md=="-") "" else if (gdc==md) "SAME -> constitutional" else "DIFFERENT -> disease-specific"
+ rows[[length(rows)+1]] <- data.frame(readout=nm, MASLD_dir=md,
+                                      beta=round(b["beta"],3),                       # primary = covariate-adjusted (used by Fig 5)
+                                      beta_ageonly=round(a["beta"],3), dir_ageonly=dir(a["beta"]),
+                                      beta_cov=round(b["beta"],3), p_cov=round(b["p"],4), dir_cov=gdc, n_cov=b["n"],
+                                      beta_bal=round(cc["beta"],3), dir_bal=dir(cc["beta"]), bal_consistency=round(cc["consist"],2),
+                                      verdict=verdict, row.names=NULL, stringsAsFactors=FALSE)
 }
 res <- do.call(rbind, rows)
 write.csv(res, file.path(REALDIR, "gtex_healthy_sex.csv"), row.names = FALSE)
 print(res, row.names = FALSE)
-cat("\nKEY: for the MASLD headline readouts, does GTEx healthy liver show the SAME sex direction\n")
-cat("(=> constitutional) or DIFFERENT/absent (=> MASLD-specific)?  Wrote gtex_healthy_sex.csv\n")
+cat("\nColumns: beta>0 = higher in MALES. dir_cov (covariate-adjusted) is the primary read;",
+    "\ndir_bal + bal_consistency show robustness to the male sex skew (fraction of", K_BAL,
+    "\nbalanced subsamples agreeing with the median direction). Wrote gtex_healthy_sex.csv.\n")
+cat("\nKEY: for the MASLD headline readouts, is the sex direction preserved under the FULL\n")
+cat("covariate + sex-balanced model? MAIT staying MALE = robust constitutional bias; Treg/CD8/DC\n")
+cat("staying female-absent/weak = robust disease-emergence. This addresses the age-only caveat.\n")

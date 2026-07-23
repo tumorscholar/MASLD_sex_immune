@@ -86,7 +86,7 @@ conc <- conc[order(conc$fdr_ord), ]
 write.csv(res[order(res$fdr), ], file.path(REALDIR, "maineffect_results.csv"), row.names = FALSE)
 write.csv(conc, file.path(REALDIR, "maineffect_concordance.csv"), row.names = FALSE)
 
-## metabolic-adjusted sex main effect (samples with BMI + T2D) — plain OLS
+## metabolic-adjusted sex main effect (samples with BMI + T2D) – plain OLS
 g <- df[stats::complete.cases(df[, c("bmi","t2d")]), , drop = FALSE]
 if (nrow(g) > 20) {
   cat("\nMetabolic-adjusted sex main effect on n=", nrow(g),

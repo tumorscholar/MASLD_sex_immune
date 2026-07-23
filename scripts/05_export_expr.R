@@ -19,7 +19,7 @@ for (co in COHORTS) {
     }
     M <- M[!duplicated(rownames(M)), , drop = FALSE]
     M <- M[rowSums(!is.na(M)) > 0, , drop = FALSE]
-    ## keep LINEAR scale (do NOT log) — deconvolution methods expect it
+    ## keep LINEAR scale (do NOT log) – deconvolution methods expect it
     outdf <- data.frame(gene_id = rownames(M), M, check.names = FALSE)
     fp <- file.path(REALDIR, paste0("expr_", gid, ".csv"))
     write.csv(outdf, fp, row.names = FALSE)

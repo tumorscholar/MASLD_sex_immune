@@ -57,4 +57,4 @@ for (gid in names(CFG)) {
       basename(out), nrow(agg), ncol(agg), paste(head(rownames(agg),4), collapse=","),
       max(agg, na.rm = TRUE)))
 }
-cat("DONE — symbol-level linear matrices ready for 07_run_deconv.R\n")
+cat("DONE – symbol-level linear matrices ready for 07_run_deconv.R\n")

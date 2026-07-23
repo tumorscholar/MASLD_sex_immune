@@ -3,8 +3,11 @@
 *.gct.gz
 geo_cache/
 results/
-figures/
+results_R/figures/
+results_R/tables/
 *.png
+*.tiff
+*.pdf
 
 # ignore CSV/TSV by default...
 *.csv
@@ -13,6 +16,13 @@ figures/
 !data/
 !data/*.csv
 !data/*.json
+
+# keep the results_R note and the small deposited GTEx result,
+# but not the regenerated figures/tables
+!results_R/
+results_R/*
+!results_R/README.md
+!results_R/gtex_healthy_sex.csv
 
 # R / editor cruft
 .Rhistory
