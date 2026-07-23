@@ -14,7 +14,8 @@ cran <- c(
   "Matrix",       # sparse matrices (single-cell)
   "Seurat",       # single-cell objects and processing
   "msigdbr",      # gene-set collections for fgsea
-  "openxlsx"      # combined tables workbook (make_tables.R)
+  "openxlsx",     # combined tables workbook (make_tables.R)
+  "metafor"       # random-effects meta-analysis (13_meta_random.R)
 )
 for (p in cran)
   if (!requireNamespace(p, quietly = TRUE)) install.packages(p)
@@ -27,7 +28,9 @@ bioc <- c(
   "AnnotationDbi",
   "edgeR",        # pseudobulk differential expression (sc_mait_functional.R)
   "limma",        # edgeR dependency
-  "fgsea"         # gene-set enrichment (sc_mait_functional.R)
+  "fgsea",        # gene-set enrichment (sc_mait_functional.R)
+  "SingleCellExperiment", # reference container for MuSiC (12_liver_deconv.R)
+  "TOAST"         # MuSiC dependency (must be installed before MuSiC)
 )
 for (p in bioc)
   if (!requireNamespace(p, quietly = TRUE)) BiocManager::install(p, update = FALSE, ask = FALSE)
@@ -39,5 +42,7 @@ if (!requireNamespace("MCPcounter", quietly = TRUE))     # deconvolution (07_run
   try(remotes::install_github("ebecht/MCPcounter", subdir = "Source", upgrade = "never"))
 if (!requireNamespace("schard", quietly = TRUE))         # read h5ad (sc_validate_hlica.R)
   try(remotes::install_github("cellgeni/schard", upgrade = "never"))
+if (!requireNamespace("MuSiC", quietly = TRUE))          # liver-reference deconvolution (12_liver_deconv.R)
+  try(remotes::install_github("xuranw/MuSiC", upgrade = "never"))
 
 message("install_packages.R done.")

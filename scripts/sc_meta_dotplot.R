@@ -11,7 +11,7 @@
 ## (_pctT/_pctImm) are both accepted and shown as percentages.
 ## ===========================================================================
 OUTBASE <- Sys.getenv("MASLD_SC",
-             "/path/to/MASLD_sex_meta/single_cell")
+             file.path(Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta"), "single_cell"))
 FIGOUT  <- file.path(OUTBASE, "meta"); dir.create(FIGOUT, showWarnings=FALSE, recursive=TRUE)
 ## where the in-house fractions live (shipped in the repo under data/)
 OWN_CSV <- Sys.getenv("OWN_CITESEQ_CSV", "")

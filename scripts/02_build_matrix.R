@@ -80,6 +80,7 @@ for (co in COHORTS) {
     for (n in rownames(S)) {
       if (!n %in% names(gsms)) next
       ch <- gsm_chars(gsms[[n]])
+      if (isTRUE(rec_followup(ch))) next   # drop non-baseline (post-surgery/follow-up) samples
       r <- list(gsm = n, cohort = gid, platform = typ,
                 sex_assigned = unname(sexs[n]), recorded_sex = rec_sex(ch),
                 fibrosis_stage = rec_stage(ch), age = rec_num(ch, c("\\bage\\b")),

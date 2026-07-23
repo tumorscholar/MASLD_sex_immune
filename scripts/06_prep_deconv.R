@@ -6,7 +6,13 @@
 source("00_config.R")
 suppressMessages({library(AnnotationDbi); library(org.Hs.eg.db); library(data.table)})
 
-## per-cohort: gene-id type + scale
+## per-cohort: gene-id type + scale.
+## Deconvolution (xCell / MCP-counter) is a SECONDARY cross-check and is run on the
+## four cohorts whose gene-id type and scale are validated below; the two cohorts
+## added later (GSE167523, GSE48452) are not deconvolved, matching the manuscript,
+## which reports deconvolution on "the four cohorts with directly comparable
+## expression matrices". To include a further cohort, add its idtype/scale entry
+## here after confirming both from its exported expr_<GSE>.csv.
 CFG <- list(
   GSE130970 = list(idtype = "entrez",  scale = "counts"),
   GSE162694 = list(idtype = "ensembl", scale = "counts"),

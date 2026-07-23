@@ -37,7 +37,7 @@ write.csv(res, file.path(REALDIR, "deconf_within_cohort.csv"), row.names = FALSE
 
 cat("Within-GSE89632 (n<=58): sex effect UNADJUSTED vs BMI/T2D/age-ADJUSTED, same samples.\n")
 cat("Small pct_attenuation + stable beta => metabolic state is NOT confounding the sex effect\n")
-cat("(so any loss of significance vs the pooled n=481 result is power, not confounding).\n")
+cat("(so any loss of significance vs the pooled n=616 result is power, not confounding).\n")
 cat("Large attenuation (beta shrinks toward 0) => metabolic state explains it.\n\n")
 print(res, row.names = FALSE)
 cat("\n--- headline readouts only ---\n")

@@ -62,7 +62,8 @@ for (co in COHORTS) {
     meta <- do.call(rbind, lapply(names(gsms), function(n) {
       ch <- gsm_chars(gsms[[n]])
       data.frame(gsm = n, recorded_sex = rec_sex(ch),
-                 fibrosis_stage = rec_stage(ch), stringsAsFactors = FALSE)
+                 fibrosis_stage = rec_stage(ch),
+                 is_followup = rec_followup(ch), stringsAsFactors = FALSE)
     }))
     if (typ == "array") {
       G <- array_symbol_matrix(eset)                       # symbols x samples
@@ -74,6 +75,7 @@ for (co in COHORTS) {
     }
     calls <- classify_sex(gr)
     df <- merge(meta, calls, by = "gsm"); df$gse <- gid
+    if ("is_followup" %in% names(df)) df <- df[!df$is_followup, , drop = FALSE]  # baseline only
     kn <- df[!is.na(df$recorded_sex) & df$sex_assigned != "Ambiguous", ]
     if (nrow(kn))
       cat(sprintf("  Concordance vs recorded sex: %.1f%% (n=%d) | Ambiguous: %d\n",

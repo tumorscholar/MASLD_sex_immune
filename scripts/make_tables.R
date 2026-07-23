@@ -33,9 +33,13 @@ tables <- list()
 mtx <- rd(file.path(RD, "analysis_matrix.csv"))
 if (!is.null(mtx)) {
   mtx$fib <- if ("fibrosis_stage" %in% names(mtx)) mtx$fibrosis_stage else NA
-  fo <- function(v) { m <- regmatches(v, regexpr("F([0-4])", v))
-                      ifelse(nchar(m) > 0, as.integer(sub("F","",m)), NA) }
-  mtx$fibn <- suppressWarnings(fo(as.character(mtx$fib)))
+  ## one value per row: regmatches() drops non-matches, so vapply per element to
+  ## keep full length (cohorts staged by NAFL/NASH rather than F0-F4 stay NA here)
+  fo <- function(v) vapply(as.character(v), function(x) {
+    m <- regmatches(x, regexpr("F([0-4])", x))
+    if (length(m) && nchar(m)) as.integer(sub("F","",m)) else NA_integer_
+  }, integer(1), USE.NAMES = FALSE)
+  mtx$fibn <- suppressWarnings(fo(mtx$fib))
   t1 <- do.call(rbind, lapply(split(mtx, mtx$cohort), function(d) data.frame(
     Cohort      = d$cohort[1],
     Platform    = if ("platform" %in% names(d)) d$platform[1] else NA,

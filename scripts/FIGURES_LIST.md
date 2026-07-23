@@ -42,9 +42,28 @@ S1 panel find `data/own_cohort_percell_fractions.csv` automatically.
 | ID | Title | Script | Source data |
 |----|-------|--------|-------------|
 | **S1** | Per-cohort single-cell validation (in-house + 4 public, one panel each) | in-house panel: `10_figures.R`; public panels: `11_supp_figures.R` | per-cohort fractions |
-| **S2** | Single-cell meta-analysis forest (Cliff's δ per cohort + pooled) | `11_supp_figures.R` (from `sc_meta_forest.R` output) | `meta/sc_meta_effects.csv` |
+| **S2** | Single-cell per-cohort effect sizes (Cliff's δ per cohort) | `11_supp_figures.R` (from `sc_meta_forest.R` / `16_sc_pooled_mait.R`) | `meta/sc_meta_effects.csv` |
 | **S3** | Guilliams capture QC + sex x diet confound check | `11_supp_figures.R` | `guilliams/out/Guilliams_clean_per_patient.csv` |
 | **S4** | MAIT functional-state scores by sex (abundance not phenotype) | `sc_mait_functional.R` | Andrews healthy MAIT pseudobulk |
+| **S5** | Bulk random-effects meta forest (per readout, I-squared, prediction interval) | `13_meta_random.R` | `analysis_matrix.csv` |
+| **S6** | Single-cell random-effects meta forest | `13_meta_random.R` | `meta/sc_meta_effects.csv` |
+
+## Supporting manuscript analyses (CSV outputs; `RUN_META`/`RUN_SC`, both cited in the text)
+
+| Output | What it is | Script | Source data |
+|--------|------------|--------|-------------|
+| `bulk_meta_random.csv`, `sc_meta_random.csv` | Random-effects pooled sex effects with I-squared, tau-squared and prediction intervals (Supp Fig S5/S6) | `13_meta_random.R` | `analysis_matrix.csv`, `sc_meta_effects.csv` |
+| `lineage_specificity.csv` | Each subset's sex effect before/after adjusting for its parent lineage (compositional-specificity control) | `15_lineage_specificity.R` | `analysis_matrix.csv` |
+| `sc_pooled_perdonor.csv` | Pooled per-donor single-cell sex test (mixed model + van Elteren) with per-donor MAIT counts | `16_sc_pooled_mait.R` | per-cohort `*_per_donor_fractions.csv` |
+
+## Exploratory analyses (off by default; `RUN_EXTRA=1`; NOT in the manuscript)
+
+See `analyses_not_in_manuscript.md` for why these are recorded but not reported.
+
+| Output | What it is | Script | Source data |
+|--------|------------|--------|-------------|
+| `liver_deconv_sex.csv` | Liver-reference deconvolution (MAIT below whole-tissue bulk resolution; rebuttal insurance) | `12_liver_deconv.R` | single-cell reference + `expr_sym_<GSE>.tsv` |
+| `hormone_*.csv` | Androgen/oestrogen-response signatures vs sex and immune axes (null / confounded) | `14_hormone_signatures.R` | `expr_sym_<GSE>.tsv`, `analysis_matrix.csv` |
 
 ## Tables
 

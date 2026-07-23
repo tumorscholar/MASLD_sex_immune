@@ -89,7 +89,7 @@ if (!is.null(meo)) save_fig(function() {
   xr <- range(c(o$beta_sexM-1.96*o$se, o$beta_sexM+1.96*o$se), na.rm=TRUE)
   plot(0,0,type="n", xlim=c(xr[1]-0.34,xr[2]+0.22), ylim=c(0.5,n+0.5), yaxt="n", ylab="",
        xlab="sex effect  beta  (<0 higher in FEMALES     >0 higher in MALES)",
-       main="Pooled sex main effect across 4 MASLD cohorts (n=481, fibrosis-adjusted)")
+       main="Pooled sex main effect across 6 MASLD cohorts (n=616, fibrosis-adjusted)")
   abline(v=0, lwd=0.8)
   for (i in yy) { r<-rownames(o)[i]; b<-o$beta_sexM[i]; se<-o$se[i]; isH<-r%in%hd; col<-if(b>0)MALE else FEM
     segments(b-1.96*se, i, b+1.96*se, i, col=col, lwd=if(isH)2.4 else 1.1)

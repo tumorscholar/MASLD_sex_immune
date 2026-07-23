@@ -20,7 +20,15 @@ COHORTS <- list(
   list(gse = "GSE130970", type = "rnaseq"),
   list(gse = "GSE162694", type = "rnaseq"),
   list(gse = "GSE89632",  type = "array"),
-  list(gse = "GSE135251", type = "rnaseq")
+  list(gse = "GSE135251", type = "rnaseq"),
+  ## added after cohort_scout + sex-assignment QC (public MASLD/NAFLD liver):
+  list(gse = "GSE167523", type = "rnaseq"),   # n=98, NAFL vs NASH, sex 0 ambiguous, 94.9% concordant
+  list(gse = "GSE48452",  type = "array")     # n=73 (50 confident), fibrosis 0-4 + NAS, 98.0% concordant
+  ## wave 2 (need per-cohort handling, not yet wired):
+  ##   GSE126848 rnaseq n=57 - count-matrix columns are bare sample codes that do not map to GSM
+  ##             accessions (needs a code->GSM map before it will merge); has healthy/obese controls
+  ##   GSE49541  array n=72, mild(F0-1)/advanced(F3-4) fibrosis, NO recorded sex (expression-only)
+  ##   GSE83452  array n=231 LONGITUDINAL (baseline+follow-up, bariatric/diet) - baseline-only before use
 )
 COHORT_IDS <- vapply(COHORTS, function(x) x$gse, character(1))
 
@@ -41,7 +49,13 @@ CELLTYPE <- list(
   ct_DC         = c("FLT3","CLEC9A","BATF3","CD1C","CLEC10A"),
   ct_Neutrophil = c("FCGR3B","CSF3R","S100A8","S100A9","CXCR2"),
   ct_Treg       = c("FOXP3","IL2RA","CTLA4","IKZF2","TNFRSF18"),
-  ct_MAIT       = c("SLC4A10","KLRB1","ZBTB16","RORC","TRAV1-2")
+  ct_MAIT       = c("SLC4A10","KLRB1","ZBTB16","RORC","TRAV1-2"),
+  ## receptor-identity MAIT (invariant TCR: SLC4A10 + TRAV1-2) vs promiscuous
+  ## CD161/RORgt MAIT-like cells. The receptor-specific readout is the cleanest
+  ## male-biased signal and must be scored here so it reaches analysis_matrix.csv
+  ## (10_figures, 13_meta_random and make_tables all expect these columns).
+  ct_MAITspec    = c("SLC4A10","TRAV1-2"),
+  ct_MAITpromisc = c("KLRB1","RORC","ZBTB16")
 )
 
 ## ---- functional-state signatures (list(up, down)) -------------------------
@@ -107,7 +121,13 @@ code_fibrosis <- function(s) {
     if (is.na(v)) return(NA_real_)
     m <- regmatches(v, regexpr("F([0-4])", v))
     if (length(m) == 1 && nchar(m) > 0) return(as.numeric(sub("F", "", m)))
-    if (grepl("normal|healthy|hc|control", v, ignore.case = TRUE)) return(0)
+    if (grepl("normal|healthy|\\bhc\\b|control", v, ignore.case = TRUE)) return(0)
+    ## disease-category severity proxy, used ONLY as a within-cohort nuisance
+    ## covariate where a fibrosis stage is not reported (e.g. NAFL vs NASH, or
+    ## mild vs advanced). Kept ordinal so each cohort adjusts on its own severity
+    ## axis; readouts are z-scored within cohort so scales are not compared across.
+    if (grepl("nash|advanced|severe", v, ignore.case = TRUE)) return(2)
+    if (grepl("nafl|steatos|\\bmild\\b|obese", v, ignore.case = TRUE)) return(1)
     NA_real_
   }, numeric(1))
 }

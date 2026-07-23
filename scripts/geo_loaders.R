@@ -20,8 +20,10 @@ gsm_chars <- function(gsm) {
   }
   out
 }
+## return the value of the first characteristic matching the HIGHEST-priority
+## pattern (patterns are tried in order across all keys, so pattern order = priority)
 find_val <- function(ch, patterns) {
-  for (k in names(ch)) for (p in patterns) if (grepl(p, k)) return(ch[[k]])
+  for (p in patterns) for (k in names(ch)) if (grepl(p, k)) return(ch[[k]])
   NA_character_
 }
 rec_sex <- function(ch) {
@@ -33,7 +35,9 @@ rec_sex <- function(ch) {
 rec_stage <- function(ch) {
   v <- find_val(ch, c("fibros")); if (is.na(v)) v <- find_val(ch, c("\\bstage\\b"))
   if (is.na(v)) {
-    g <- find_val(ch, c("group","diagnos","disease","condition"))
+    ## prefer a disease SUBTYPE (NAFL/NASH) over a constant disease-state field,
+    ## so cohorts staged by subtype rather than fibrosis still get a severity axis
+    g <- find_val(ch, c("subtype","group","diagnos","disease","condition"))
     return(if (!is.na(g)) paste0("grp:", g) else NA_character_)
   }
   m <- regmatches(v, regexpr("[Ff]?\\s*([0-4])", v))
@@ -51,19 +55,37 @@ rec_t2d <- function(ch) {
   if (v %in% c("0","no","n","none","absent","negative","non-diabetic")) return(0)
   NA_real_
 }
+## flag non-baseline samples in longitudinal / interventional cohorts so they can
+## be dropped (keep one cross-sectional observation per patient; e.g. GSE48452's
+## post-bariatric-surgery follow-ups). Cross-sectional cohorts return FALSE for all.
+rec_followup <- function(ch) {
+  hay <- tolower(paste(unlist(ch), collapse = " | "))
+  grepl("after surgery|post[- ]?surger|follow[- ]?up|post[- ]?treatment|post[- ]?intervention", hay)
+}
 
 ## ---- array cohort: symbol x sample matrix from the ExpressionSet ----
 ## Collapses probes to gene symbols by mean.
 array_symbol_matrix <- function(eset) {
   X <- exprs(eset)
   fd <- fData(eset)
+  ## 1) prefer a clean gene-symbol column (Illumina, Affymetrix 3'-IVT like U133)
   sc <- grep("gene[ _]?symbol|^symbol$|ILMN_Gene", names(fd), ignore.case = TRUE, value = TRUE)[1]
-  if (is.na(sc)) stop("no gene-symbol column in featureData; have: ",
-                      paste(head(names(fd)), collapse=", "))
-  sym <- toupper(vapply(strsplit(as.character(fd[[sc]]), "[ /|]"), `[`, character(1), 1))
-  keep <- !is.na(sym) & sym != "" & sym != "NA"
+  if (!is.na(sc)) {
+    sym <- toupper(vapply(strsplit(as.character(fd[[sc]]), "[ /|]"), `[`, character(1), 1))
+  } else {
+    ## 2) Affymetrix Gene/Exon ST arrays (e.g. GPL11532, GPL16686): the symbol is
+    ##    the 2nd '//' field of gene_assignment, e.g. "NM_x // SYMBOL // desc // ...".
+    ga <- grep("gene[ _]?assignment", names(fd), ignore.case = TRUE, value = TRUE)[1]
+    if (is.na(ga)) stop("no gene-symbol / gene_assignment column in featureData; have: ",
+                        paste(head(names(fd)), collapse = ", "))
+    sym <- toupper(vapply(strsplit(as.character(fd[[ga]]), "\\s*//\\s*"),
+                          function(p) if (length(p) >= 2) trimws(p[2]) else NA_character_,
+                          character(1)))
+  }
+  keep <- !is.na(sym) & sym != "" & sym != "NA" & sym != "---"
   X <- X[keep, , drop = FALSE]; sym <- sym[keep]
-  G <- rowsum(X, group = sym) / as.vector(table(sym)[rownames(rowsum(X, group = sym))])
+  RS <- rowsum(X, group = sym)
+  G  <- RS / as.vector(table(sym)[rownames(RS)])   # probe -> symbol mean
   G  # symbols x samples
 }
 

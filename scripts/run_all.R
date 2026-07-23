@@ -13,10 +13,12 @@
 ##   MASLD_REALDIR   output/analysis folder   (see 00_config.R)
 ##   MASLD_SCRATCH   scratch for downloads     (see 00_config.R)
 ##   RUN_INSTALL=1   run install_packages.R first (off by default)
-##   RUN_BULK=1      bulk pipeline 01-09        (on by default)
-##   RUN_SC=0        single-cell validations    (off by default: needs big raw data)
+##   RUN_BULK=1      bulk pipeline 01-09         (on by default)
+##   RUN_META=1      random-effects meta (13) + lineage specificity (15) (on by default)
+##   RUN_SC=0        single-cell validations + pooled per-donor (16) (off: needs big raw data)
 ##   RUN_TABLES=1    make_tables.R              (on by default)
 ##   RUN_FIGURES=1   figures 10/11 + dot plots  (on by default)
+##   RUN_EXTRA=0     exploratory, NOT in manuscript: liver deconv (12), hormone (14) (off)
 ## ===========================================================================
 
 ## make sure we are in the scripts folder (works from Rscript or source())
@@ -28,9 +30,11 @@ if (!file.exists("00_config.R"))
 flag <- function(v, default) { x <- Sys.getenv(v, NA); if (is.na(x)) default else x %in% c("1","TRUE","true","yes") }
 RUN_INSTALL <- flag("RUN_INSTALL", FALSE)
 RUN_BULK    <- flag("RUN_BULK",    TRUE)
+RUN_META    <- flag("RUN_META",    TRUE)    # random-effects meta + lineage specificity (in the manuscript)
 RUN_SC      <- flag("RUN_SC",      FALSE)
 RUN_TABLES  <- flag("RUN_TABLES",  TRUE)
 RUN_FIGURES <- flag("RUN_FIGURES", TRUE)
+RUN_EXTRA   <- flag("RUN_EXTRA",   FALSE)   # exploratory analyses NOT in the manuscript (liver-ref deconv, hormone signatures)
 
 results <- list()
 step <- function(label, file, cond = TRUE) {
@@ -47,8 +51,8 @@ step <- function(label, file, cond = TRUE) {
 
 cat("############################################################\n")
 cat("#  sex x MASLD hepatic-immune meta-analysis - full run\n")
-cat("#  bulk=", RUN_BULK, " single-cell=", RUN_SC, " tables=", RUN_TABLES,
-    " figures=", RUN_FIGURES, "\n", sep = "")
+cat("#  bulk=", RUN_BULK, " meta=", RUN_META, " single-cell=", RUN_SC,
+    " tables=", RUN_TABLES, " figures=", RUN_FIGURES, " extra=", RUN_EXTRA, "\n", sep = "")
 cat("############################################################\n")
 
 ## ---- 0. setup --------------------------------------------------------------
@@ -65,6 +69,12 @@ step("07 run deconvolution",   "07_run_deconv.R",     RUN_BULK)
 step("08 concordance",         "08_concordance.R",    RUN_BULK)
 step("09 deconfound",          "09_deconfound.R",     RUN_BULK)
 
+## ---- 1b. meta-analysis and lineage specificity (in the manuscript) ----------
+##  random-effects meta needs analysis_matrix.csv (and, for the single-cell arm,
+##  sc_meta_effects.csv from RUN_SC); lineage specificity needs analysis_matrix.csv.
+step("13 random-effects meta-analysis",  "13_meta_random.R",         RUN_META)
+step("15 lineage specificity",           "15_lineage_specificity.R", RUN_META)
+
 ## ---- 2. single-cell validations (need downloaded raw data) -----------------
 ##  each build_* makes a Seurat object; each validate_* gates + tests it.
 step("sc build Andrews",       "sc_build_andrews.R",       RUN_SC)
@@ -75,6 +85,7 @@ step("sc build Ramachandran",  "sc_build_ramachandran.R",  RUN_SC)
 step("sc validate Ramachandran","sc_validate_ramachandran.R", RUN_SC)
 step("sc validate HLiCA",      "sc_validate_hlica.R",      RUN_SC)
 step("sc meta forest",         "sc_meta_forest.R",         RUN_SC)
+step("16 pooled per-donor single-cell", "16_sc_pooled_mait.R", RUN_SC)
 step("sc MAIT functional",     "sc_mait_functional.R",     RUN_SC)
 step("sc build in-house (Fig 7 provenance)", "sc_build_owncohort.R", RUN_SC)
 
@@ -85,6 +96,13 @@ step("make tables",            "make_tables.R",       RUN_TABLES)
 step("10 main figures (Fig 1-7)", "10_figures.R",     RUN_FIGURES)
 step("Fig 7 combined single-cell dot plot","sc_meta_dotplot.R", RUN_FIGURES)
 step("11 supplementary figures",  "11_supp_figures.R", RUN_FIGURES)
+
+## ---- 5. exploratory analyses (off by default; NOT in the manuscript) --------
+##  liver-reference deconvolution (rebuttal insurance; MAIT is below whole-tissue
+##  bulk resolution) and hormone-response signatures (null / confounded). See
+##  analyses_not_in_manuscript.md for why these are recorded but not reported.
+step("12 liver-reference deconvolution", "12_liver_deconv.R",       RUN_EXTRA)
+step("14 hormone-response signatures",   "14_hormone_signatures.R", RUN_EXTRA)
 
 ## ---- summary ---------------------------------------------------------------
 cat("\n############################################################\n")
