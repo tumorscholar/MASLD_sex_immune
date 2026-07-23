@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the associated manuscript (in preparation)."
+title: "Sex differences in the hepatic immune landscape of MASLD: analysis code"
+abstract: >-
+  Analysis code and processed data for a public-data transcriptomic meta-analysis
+  of sex differences in the hepatic immune compartment of MASLD/MASH, with a
+  disease-free control and single-cell validation.
+authors:
+  - family-names: Kumar
+    given-names: Raju
+license: MIT
+date-released: 2026-07-23
+keywords:
+  - MASLD
+  - MASH
+  - sex differences
+  - hepatic immunity
+  - MAIT cells
+  - meta-analysis

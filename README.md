@@ -52,8 +52,13 @@ MASLD_sex_immune/
     ├── 07_run_deconv.R            xCell and MCP-counter deconvolution
     ├── 08_concordance.R           deconvolution vs signature concordance
     ├── 09_deconfound.R            BMI / type-2 diabetes / age deconfounding
-    ├── sc_build_*.R               build a Seurat object per public single-cell cohort
-    ├── sc_validate_*.R            gate cell types and test sex directions per cohort
+    ├── sc_build_andrews.R         build a Seurat object (Andrews 2024)
+    ├── sc_build_guilliams.R       build a Seurat object (Guilliams / Liver Cell Atlas)
+    ├── sc_build_ramachandran.R    build a Seurat object (Ramachandran 2019)
+    ├── sc_validate_andrews.R      gate cell types and test sex directions (Andrews)
+    ├── sc_validate_guilliams.R    gate cell types and test sex directions (Guilliams)
+    ├── sc_validate_hlica.R        gate cell types and test sex directions (HLiCA)
+    ├── sc_validate_ramachandran.R gate cell types and test sex directions (Ramachandran)
     ├── sc_guilliams_clean.R       patient-level re-analysis of the Guilliams cohort
     ├── sc_build_owncohort.R       in-house CITE-seq per-patient fractions
     ├── sc_mait_functional.R       male vs female MAIT functional-state comparison
