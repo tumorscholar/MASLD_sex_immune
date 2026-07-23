@@ -9,6 +9,7 @@ rebuilt by the scripts; only two things are tracked:
 
 Running `scripts/run_all.R` (or the individual scripts) repopulates:
 
-- `figures/`  – Fig 1-8 and Supp Fig S1-S3 as PDF / TIFF / PNG
-- `tables/`   – Table 1-4 as CSV plus `MASLD_sex_tables.xlsx`
-- the pipeline CSVs (`analysis_matrix.csv`, `maineffect_results.csv`, etc.)
+- `figures/`  – Fig 1-7 and Supp Fig S1-S6 as PDF / TIFF / PNG
+- `tables/`   – Table 1-5 (+5b) as CSV plus `MASLD_sex_tables.xlsx`
+- the pipeline CSVs (`analysis_matrix.csv`, `maineffect_results.csv`,
+  `bulk_meta_random.csv`, `lineage_specificity.csv`, etc.)

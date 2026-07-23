@@ -1,6 +1,6 @@
 ## 02_build_matrix.R ----------------------------------------------------------
 ## Build the analysis matrix: one singscore per cell-type / functional-state
-## signature per sample, across the 4 cohorts, plus covariates. Genes are matched
+## signature per sample, across all cohorts, plus covariates. Genes are matched
 ## whether the cohort is indexed by symbol, Ensembl or Entrez.
 ## Writes analysis_matrix.csv (the input to 03/08/09) and signature_defs.json.
 ## ---------------------------------------------------------------------------

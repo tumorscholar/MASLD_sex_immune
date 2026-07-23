@@ -35,7 +35,7 @@ S1 panel find `data/own_cohort_percell_fractions.csv` automatically.
 | **Fig 4** | MAIT receptor-identity specificity | `10_figures.R` | `analysis_matrix.csv`, `maineffect_results.csv` |
 | **Fig 5** | Disease-specificity + robustness (MASLD vs GTEx) | `10_figures.R` | `gtex_healthy_sex.csv`, `deconf_within_cohort.csv`, `maineffect_results.csv` |
 | **Fig 6** | Deconvolution concordance | `10_figures.R` | `deconv_concordance.csv` |
-| **Fig 7** | Single-cell validation, in-house + four public cohorts (one combined dot plot) | `sc_meta_dotplot.R` | in-house + per-cohort `*_per_donor_fractions.csv` |
+| **Fig 7** | Single-cell analysis, in-house + four public cohorts (one combined dot plot) | `sc_meta_dotplot.R` | in-house + per-cohort `*_per_donor_fractions.csv` |
 
 ## Supplementary figures
 
