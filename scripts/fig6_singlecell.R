@@ -52,7 +52,7 @@ stopifnot(!is.na(sexcol), length(resolved) > 0)
 getv <- function(col, idx) { v <- own[[col]][idx]; if (max(own[[col]], na.rm=TRUE) <= 1) v * 100 else v }  # 0-1 fraction -> %
 
 save_fig(function() {
-  par(mfrow = c(1, length(resolved)), mar = c(3, 3.4, 3.2, 0.6), oma = c(0, 0, 1.8, 0), cex = 0.72)
+  par(mfrow = c(1, length(resolved)), mar = c(3, 4.3, 3.2, 0.6), mgp = c(2.6, 0.7, 0), oma = c(0, 0, 1.8, 0), cex = 0.72)
   isF <- own[[sexcol]] %in% c("F", "female", "Female"); isM <- own[[sexcol]] %in% c("M", "male", "Male")
   for (i in seq_along(resolved)) {
     rv <- resolved[[i]]$col; lab <- resolved[[i]]$lab

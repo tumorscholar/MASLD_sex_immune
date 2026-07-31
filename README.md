@@ -1,33 +1,40 @@
 # Sex differences in the hepatic immune landscape of MASLD
 
-Analysis code and processed data for a transcriptomic meta-analysis of sex
-differences in the hepatic immune compartment of metabolic dysfunction-associated
-steatotic liver disease (MASLD / MASH), built entirely on public data.
+Analysis code for a transcriptomic meta-analysis of sex differences in the hepatic
+immune compartment of metabolic dysfunction-associated steatotic liver disease
+(MASLD) and its inflammatory form, metabolic dysfunction-associated steatohepatitis
+(MASH) — the current nomenclature for NAFLD/NASH and the most common chronic liver
+disease worldwide. MASLD is markedly sex-dimorphic in prevalence and progression,
+yet sex is rarely treated as a biological variable in hepatic immunology. This study
+asks whether the liver immune composition itself differs by sex, and whether any
+difference is driven by disease or is already present in disease-free liver. It is
+built entirely on public data: public data in, published signatures out.
 
 ![Language](https://img.shields.io/badge/language-R-276DC3)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Overview
 
-The pipeline assigns each sample's sex from expression, scores immune cell-type and
+The pipeline assigns each sample's sex directly from sex-chromosome gene expression
+(so it works even where the metadata omits sex), scores immune cell-type and
 functional-state signatures per sample, and estimates the sex effect for every
-readout across six MASLD cohorts jointly, adjusting for fibrosis stage. Each
-headline result is required to survive two fibrosis codings, false-discovery-rate
-correction, leave-one-cohort-out resampling, a random-effects meta-analysis (with
-between-cohort heterogeneity, I-squared, and a prediction interval), a lineage-
-specificity control (adjusting each subset for its parent compartment), an
-independent deconvolution method, a metabolic (BMI / type-2 diabetes / age)
-deconfounding step, and a disease-free (GTEx) control. The sex directions are then
-examined at single-cell resolution in an in-house CITE-seq cohort and four
-independent public single-cell cohorts.
+readout jointly across six public MASLD cohorts, adjusting for fibrosis stage. Every
+headline result must survive a deliberately demanding gauntlet: two independent
+fibrosis codings, false-discovery-rate correction, leave-one-cohort-out resampling,
+a random-effects meta-analysis (with between-cohort heterogeneity I², and a
+prediction interval), a lineage-specificity control (adjusting each subset for its
+parent compartment), an independent deconvolution method, a metabolic (BMI /
+type-2 diabetes / age) deconfounding step, and a disease-free (GTEx) control. The
+resulting sex directions are then examined at single-cell resolution in an in-house
+CITE-seq cohort and four independent public single-cell cohorts.
 
-The analysis resolves two axes of sex difference: a **baseline male-biased MAIT-cell signature**,
-present already in disease-free liver, specific to the receptor-defined
-(SLC4A10 / TRAV1-2) MAIT programme, homogeneous across cohorts (I-squared = 0%), and
-strengthening rather than weakening when adjusted for total T-cell content; and a
-**disease-emergent, female-skewed programme** (regulatory T cells the specific
-anchor, with CD8 T cells and conventional dendritic cells) that appears with disease
-rather than at baseline.
+Two reproducible axes emerge. The first is a **baseline, male-biased MAIT-cell
+signature** — already present in disease-free liver, specific to the receptor-defined
+(*SLC4A10* / *TRAV1-2*) MAIT programme, homogeneous across cohorts (I² = 0%), and
+*strengthening* rather than weakening once total T-cell content is accounted for. The
+second is a **disease-associated, female-biased programme** — anchored on regulatory
+T cells, with CD8 T cells and conventional dendritic cells — that is flat in
+disease-free liver and appears only with MASLD.
 
 ## Repository structure
 
@@ -35,12 +42,6 @@ rather than at baseline.
 MASLD_sex_immune/
 ├── README.md
 ├── LICENSE
-├── CITATION.cff
-├── push_to_github.sh
-├── data/                      Processed inputs that ship with the repository
-│   ├── signature_defs.json        marker and signature definitions
-│   ├── own_cohort_percell_fractions.csv   in-house CITE-seq per-patient fractions
-│   └── own_cohort_sex.csv         in-house patient-to-sex map
 ├── results_R/                 Regenerated outputs (figures and tables; git-ignored)
 └── scripts/
     ├── run_all.R                  end-to-end runner (analysis, meta, tables, figures)

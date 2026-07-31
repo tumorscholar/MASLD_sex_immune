@@ -19,6 +19,28 @@ LAB <- c(ct_MAIT = "MAIT", ct_MAITspec = "MAIT (SLC4A10/TRAV1-2)", ct_MAITpromis
   ct_Treg = "Treg", ct_CD8T = "CD8 T", ct_DC = "Dendritic", ct_NK = "NK", ct_Bcell = "B cell",
   ct_MonoMac = "Mono/Mac", st_Th1 = "Th1")
 lab <- function(r) ifelse(r %in% names(LAB), LAB[r], r)
+SHORT <- c(ct_MAIT = "MAIT", ct_MAITspec = "MAIT (recept.)", ct_MAITpromisc = "MAIT (shared)",
+  ct_Treg = "Treg", ct_CD8T = "CD8 T", ct_DC = "cDC", ct_NK = "NK", ct_Bcell = "B", ct_MonoMac = "Mono/Mac", st_Th1 = "Th1")
+slab <- function(r) ifelse(r %in% names(SHORT), SHORT[r], lab(r))
+ROBUST <- "#5B7FA6"                                   # neutral (was green): fully robust
+## dependency-free label de-overlap: iteratively push labels apart, draw leader lines
+repel <- function(x, y, labels, cex = 0.6, col = "black", im = 300) {
+  u <- par("usr"); dx <- u[2]-u[1]; dy <- u[4]-u[3]
+  nx <- (x-u[1])/dx; ny <- (y-u[3])/dy; lx <- nx; ly <- ny
+  wl <- strwidth(labels, cex=cex)/dx/2 + 0.006; hl <- strheight(labels, cex=cex)/dy/2 + 0.010
+  for (it in 1:im) for (i in seq_along(lx)) {
+    fx <- 0; fy <- 0
+    for (j in seq_along(lx)) if (i!=j) {
+      ax <- lx[i]-lx[j]; ay <- ly[i]-ly[j]
+      ox <- (wl[i]+wl[j])-abs(ax); oy <- (hl[i]+hl[j])-abs(ay)
+      if (ox>0 && oy>0) { fx <- fx + sign(ax+1e-6)*ox*0.45; fy <- fy + sign(ay+1e-6)*oy*0.45 }
+    }
+    lx[i] <- min(1-wl[i], max(wl[i], lx[i]+fx - (lx[i]-nx[i])*0.03))
+    ly[i] <- min(1-hl[i], max(hl[i], ly[i]+fy - (ly[i]-ny[i])*0.03))
+  }
+  X <- u[1]+lx*dx; Y <- u[3]+ly*dy
+  segments(x, y, X, Y, col="grey65", lwd=0.4); text(X, Y, labels, cex=cex, col=col)
+}
 HEAD <- c("ct_MAIT", "ct_MAITspec", "ct_Treg", "ct_CD8T", "ct_DC", "st_Th1")
 
 me  <- rd(file.path(RD, "maineffect_results.csv")); stopifnot(!is.null(me))
@@ -34,12 +56,13 @@ save_fig(function() {
   plot(xs, ys, type = "n", xlim = c(-lim, lim), ylim = c(-lim, lim),
        xlab = "MASLD beta (>0 male)", ylab = "GTEx disease-free beta (>0 male)", main = "A  Disease-specificity")
   abline(0, 1, lty = 2, col = GREY); abline(h = 0, v = 0, col = "grey40", lwd = .5)
+  hdi <- which(common %in% HEAD)
   for (i in seq_along(common)) { r <- common[i]; hd <- r %in% HEAD
-    points(xs[i], ys[i], pch = 19, cex = if (hd) 1.4 else 0.6, col = if (hd) (if (xs[i] > 0) MALE else FEM) else adjustcolor(GREY, .5))
-    if (hd) text(xs[i], ys[i], lab(r), pos = 4, cex = 0.6, offset = 0.3) }
+    points(xs[i], ys[i], pch = 19, cex = if (hd) 1.4 else 0.6, col = if (hd) (if (xs[i] > 0) MALE else FEM) else adjustcolor(GREY, .5)) }
+  repel(xs[hdi], ys[hdi], slab(common[hdi]), cex = 0.6)
   ## B — cross-cohort robustness (leave-one-cohort-out)
   hs <- HEAD[HEAD %in% rownames(meo)]; v <- meo[hs, "loco_n_sig"]
-  bp <- barplot(rev(v), horiz = TRUE, col = rev(ifelse(v >= NCOH, GREEN, AMB)), names.arg = rev(lab(hs)),
+  bp <- barplot(rev(v), horiz = TRUE, col = rev(ifelse(v >= NCOH, ROBUST, AMB)), names.arg = rev(slab(hs)),
                 las = 1, xlim = c(0, NCOH + 0.6), xlab = "cohorts significant (leave-one-out)",
                 main = "B  Cross-cohort robustness", cex.names = 0.7)
   text(rev(v) + 0.1, bp, sprintf("%d/%d", rev(v), NCOH), adj = 0, cex = 0.75)

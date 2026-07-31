@@ -10,6 +10,19 @@
 ## On a laptop, point them anywhere writable (they are created if missing).
 REALDIR <- Sys.getenv("MASLD_REALDIR", "/path/to/MASLD_sex_meta")
 SCRATCH <- Sys.getenv("MASLD_SCRATCH", "/path/to/scratch/masld_meta")
+
+## FAIL LOUDLY if the paths were never set (the #1 cause of cryptic downstream
+## "cannot open connection" errors). Set them before sourcing, ideally once in
+## ~/.Renviron:   MASLD_REALDIR=/your/output/dir
+##                MASLD_SCRATCH=/your/scratch/dir
+if (grepl("^/path/to", REALDIR) || grepl("^/path/to", SCRATCH))
+  stop("\n  MASLD_REALDIR / MASLD_SCRATCH are still the PLACEHOLDER paths, so nothing will be found.\n",
+       "  Set them before sourcing 00_config.R. Easiest (persists across sessions) - add to ~/.Renviron:\n",
+       "      MASLD_REALDIR=/data/Blizard-AlazawiLab/rk/MASLD_sex_meta\n",
+       "      MASLD_SCRATCH=/data/Blizard-AlazawiLab/rk/scratch/masld_meta\n",
+       "  then restart R. Or per-session:  Sys.setenv(MASLD_REALDIR=..., MASLD_SCRATCH=...)\n",
+       "  Current values -> REALDIR=", REALDIR, "  SCRATCH=", SCRATCH, "\n", call. = FALSE)
+
 GEO_CACHE <- file.path(SCRATCH, "geo_cache")
 FIGDIR  <- file.path(REALDIR, "figures")
 for (d in c(REALDIR, SCRATCH, GEO_CACHE, FIGDIR))

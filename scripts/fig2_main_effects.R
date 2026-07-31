@@ -36,7 +36,7 @@ save_fig(function() {
   ## row 1 = forest (spans 6 cols), row 2 = empty spacer, row 3 = 6 distribution panels
   layout(matrix(c(rep(1, 6), rep(0, 6), 2:7), 3, 6, byrow = TRUE), heights = c(2.2, 0.22, 1.05))
   ## ---- Panel A: forest across all readouts ----
-  par(mar = c(4.5, 8.5, 3, 3), cex = 0.7)
+  par(mar = c(5.6, 8.5, 3, 3), cex = 0.7)
   o <- meo[order(meo$beta_sexM), ]
   hd <- if (!is.null(conc)) conc$readout[conc$headline %in% c(TRUE, "True", "TRUE")] else HEAD
   n <- nrow(o); yy <- seq_len(n)
@@ -51,7 +51,7 @@ save_fig(function() {
     lc <- if (isH) sprintf("%s  LOCO %d/%d", star(o$fdr[i]), o$loco_n_sig[i], NCOH) else star(o$fdr[i])
     text(if (b > 0) b + 1.96 * se + 0.02 else b - 1.96 * se - 0.02, i, lc, adj = if (b > 0) 0 else 1, cex = 0.6) }
   axis(2, at = yy, labels = paste0(lab(rownames(o)), ifelse(rownames(o) %in% hd, " *", "")), las = 1, cex.axis = 0.72)
-  mtext("* headline   *FDR<.05 **<.01 ***<.001   LOCO = leave-one-cohort-out fits significant", side = 1, line = 3.3, cex = 0.5, adj = 0)
+  mtext("* headline   *FDR<.05 **<.01 ***<.001   LOCO = leave-one-cohort-out fits significant", side = 1, line = 4.6, cex = 0.5, adj = 0)
   ## ---- Panel B: per-sample distributions of the headline readouts ----
   present <- HEAD[HEAD %in% names(mtx)]
   mz <- mtx; for (r in present) mz[[r]] <- ave(mz[[r]], mz$cohort, FUN = zc)

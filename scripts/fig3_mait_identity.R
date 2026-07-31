@@ -27,7 +27,7 @@ save_fig(function() {
   mz <- mtx; for (t in trio) mz[[t]] <- ave(mz[[t]], mz$cohort, FUN = zc)
   pos <- 0; xt <- c(); xl <- c(); cen <- c()
   plot(0, 0, type = "n", xlim = c(-0.6, length(trio) * 2.7), ylim = range(unlist(mz[trio]), na.rm = TRUE) * 1.15,
-       xaxt = "n", ylab = "within-cohort z-score", main = "A  MAIT signal is receptor-identity-specific")
+       xaxt = "n", xlab = "", ylab = "within-cohort z-score", main = "A  MAIT signal is receptor-identity-specific")
   abline(h = 0, lty = 3, col = "grey50")
   for (t in trio) { cen <- c(cen, pos + 0.5)
     for (sc in c("F", "M")) { d <- mz[[t]][mz$sex_assigned == sc]; violin(d, pos, ifelse(sc == "M", MALE, FEM))
@@ -36,7 +36,7 @@ save_fig(function() {
   axis(1, at = xt, labels = xl); top <- par("usr")[4]
   text(cen, top * 0.96, SETLAB[trio], font = 2, cex = 0.66)
   b <- meo[trio, "beta_sexM"]
-  bp <- barplot(rev(b), horiz = TRUE, col = MALE, names.arg = rev(SETLAB[trio]), las = 1,
+  bp <- barplot(rev(b), horiz = TRUE, col = MALE, names.arg = rev(SETLAB[trio]), las = 1, space = 0.8,
                 xlim = c(0, max(b) * 1.45), xlab = "male-bias beta", main = "B  Effect size by marker set", cex.names = 0.7)
   text(rev(b) + 0.01, bp, sprintf("beta=%+.2f %s", rev(b), star(meo[trio, "fdr"])), adj = 0, cex = 0.7)
 }, "Figure_3_MAIT_identity", 7.1, 3.3)

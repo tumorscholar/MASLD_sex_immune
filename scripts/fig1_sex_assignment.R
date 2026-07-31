@@ -8,7 +8,7 @@
 RD     <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
 SEXDIR <- if (dir.exists(file.path(RD, "sex_assign_out"))) file.path(RD, "sex_assign_out") else path.expand("~/sex_assign_out")
 FIG    <- file.path(RD, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
-MALE <- "#2C7FB8"; FEM <- "#D95F0E"; GREEN <- "#4D9221"
+MALE <- "#2C7FB8"; FEM <- "#D95F0E"; NEUTRAL <- "#5B7FA6"
 pdf.options(family = "Helvetica")
 save_fig <- function(draw, name, w, h) {
   pdf (file.path(FIG, paste0(name, ".pdf")),  width = w, height = h, family = "Helvetica"); draw(); dev.off()
@@ -33,10 +33,16 @@ save_fig(function() {
   ## B — concordance with recorded sex, per cohort
   cc <- calls[calls$recorded_sex %in% c("M", "F"), ]
   if (nrow(cc)) {
-    g <- tapply(cc$sex_assigned == cc$recorded_sex, cc$gse, function(x) 100 * mean(x))
-    n <- tapply(cc$gse, cc$gse, length)
-    bp <- barplot(g, horiz = TRUE, col = GREEN, xlim = c(0, 108), names.arg = paste0(names(g), "\n(n=", n[names(g)], ")"),
-                  las = 1, cex.names = 0.6, xlab = "concordance with recorded sex (%)", main = "B  Validation vs metadata")
+    ## concordance among CONFIDENTLY-CALLED samples (exclude Ambiguous), to match
+    ## the reported metric; the n label shows called/total so the assignment rate
+    ## is transparent (array cohorts leave more samples Ambiguous).
+    called <- cc[cc$sex_assigned %in% c("M", "F"), ]
+    g  <- tapply(called$sex_assigned == called$recorded_sex, called$gse, function(x) 100 * mean(x))
+    nc <- tapply(called$gse, called$gse, length)          # confidently called
+    na <- tapply(cc$gse,     cc$gse,     length)          # all with recorded sex
+    bp <- barplot(g, horiz = TRUE, col = NEUTRAL, xlim = c(0, 108),
+                  names.arg = paste0(names(g), "\n(", nc[names(g)], "/", na[names(g)], " called)"),
+                  las = 1, cex.names = 0.6, xlab = "concordance among confidently-called (%)", main = "B  Validation vs metadata")
     text(pmin(g, 99) + 2, bp, sprintf("%.0f%%", g), cex = 0.7, adj = 0)
   } else { plot.new(); title("B  (no recorded sex)") }
   ## C — bimodal separation
