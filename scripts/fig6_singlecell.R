@@ -2,11 +2,6 @@
 ## SELF-CONTAINED: Source in RStudio. Reads the in-house CITE-seq per-donor
 ## fractions CSV (set OWN_CITESEQ_CSV or MASLD_REALDIR). Writes
 ## Figure_6_singlecell.pdf + .tiff (600 dpi). One panel per readout.
-##
-## CHECK (see MANUSCRIPT_CHECKS.md #1): confirm the in-house male/female donor
-## split printed below against the manuscript. Fig 6 legend / Results 3.7 say
-## 5 M / 14 F, but Discussion para 2 + Supp Fig S3 quote 7 M / 4 F for the MAIT
-## functional comparison — reconcile before submission.
 ## ---------------------------------------------------------------------------
 RD  <- Sys.getenv("MASLD_REALDIR", "/data/Blizard-AlazawiLab/rk/MASLD_sex_meta")
 FIG <- file.path(RD, "figures"); dir.create(FIG, showWarnings = FALSE, recursive = TRUE)
@@ -33,8 +28,7 @@ cat("Fig 6 reading:", OWN_CSV, "\n")
 own <- read.csv(OWN_CSV, stringsAsFactors = FALSE)
 
 sexcol <- intersect(c("sex", "sex_assigned", "Sex"), names(own))[1]
-## CHECK (MANUSCRIPT_CHECKS.md #1): print the actual in-house donor split so it
-## can be reconciled with the manuscript (Fig 6 / Results 3.7 = 5 M / 14 F).
+## Print the actual in-house donor split for reference (Fig 6 / Results 3.7 = 5 M / 14 F).
 if (!is.na(sexcol)) {
   .m <- sum(own[[sexcol]] %in% c("M","male","Male")); .f <- sum(own[[sexcol]] %in% c("F","female","Female"))
   cat(sprintf("[CHECK] in-house cohort donor split: %d male / %d female (n=%d)\n", .m, .f, nrow(own)))

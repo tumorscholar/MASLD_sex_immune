@@ -6,7 +6,21 @@
 ## ---------------------------------------------------------------------------
 source("00_config.R")
 source("geo_loaders.R")
-suppressMessages({library(AnnotationDbi); library(org.Hs.eg.db)})
+suppressMessages({library(AnnotationDbi); library(org.Hs.eg.db); library(singscore)})
+
+## Score a signature with the Bioconductor singscore package (Foroutan et al., 2018).
+## Filters gene IDs to those present in the ranked matrix and returns the per-sample
+## TotalScore; returns NULL if the up-set has no genes present (matches prior loop).
+score_sig <- function(ranks, up_ids, dn_ids = NULL) {
+  up_ids <- unique(up_ids[!is.na(up_ids) & up_ids %in% rownames(ranks)])
+  if (!length(up_ids)) return(NULL)
+  dn_ids <- if (!is.null(dn_ids)) unique(dn_ids[!is.na(dn_ids) & dn_ids %in% rownames(ranks)]) else NULL
+  sc <- if (!is.null(dn_ids) && length(dn_ids))
+          singscore::simpleScore(ranks, upSet = up_ids, downSet = dn_ids)
+        else
+          singscore::simpleScore(ranks, upSet = up_ids)
+  sc$TotalScore
+}
 
 ## ---- symbol -> Ensembl / Entrez maps for all signature genes ----
 sym2ens <- tryCatch(mapIds(org.Hs.eg.db, ALL_SYMS, "ENSEMBL", "SYMBOL", multiVals = "first"),
@@ -40,9 +54,9 @@ for (co in COHORTS) {
   gid <- co$gse; typ <- co$type
   cat("\n======", gid, "======\n")
   res <- try({
-    gse_soft <- getGEO(gid, destdir = GEO_CACHE, GSEMatrix = FALSE)
+    gse_soft <- getGEO_retry(gid, destdir = GEO_CACHE, GSEMatrix = FALSE)
     if (typ == "array") {
-      eset <- getGEO(gid, destdir = GEO_CACHE, GSEMatrix = TRUE, getGPL = TRUE)[[1]]
+      eset <- getGEO_retry(gid, destdir = GEO_CACHE, GSEMatrix = TRUE, getGPL = TRUE)[[1]]
       M <- array_symbol_matrix(eset)
     } else {
       M <- as.matrix(map_cols_to_gsm(gse_soft, rnaseq_matrix(gid)))
@@ -50,7 +64,7 @@ for (co in COHORTS) {
     M <- M[!duplicated(rownames(M)), , drop = FALSE]
     M <- M[rowSums(!is.na(M)) > 0, , drop = FALSE]
     M <- maybe_log2(M)
-    norm <- build_lookup(M); ng <- nrow(M); ranks <- rank_matrix(M)
+    norm <- build_lookup(M); ranks <- singscore::rankGenes(M)
 
     ## sex assignment (within-cohort z of XIST vs Y)
     gvec <- function(sym) { h <- find_gene(sym, norm); if (!is.na(h)) as.numeric(M[h, ]) else NULL }
@@ -66,12 +80,12 @@ for (co in COHORTS) {
     score_cols <- list()
     for (nm in names(CELLTYPE)) {
       ids <- vapply(CELLTYPE[[nm]], find_gene, character(1), norm = norm)
-      s <- singscore_custom(ranks, ng, ids); if (!is.null(s)) score_cols[[nm]] <- s
+      s <- score_sig(ranks, ids); if (!is.null(s)) score_cols[[nm]] <- s
     }
     for (nm in names(STATE)) {
       up <- vapply(STATE[[nm]]$up, find_gene, character(1), norm = norm)
       dn <- if (length(STATE[[nm]]$down)) vapply(STATE[[nm]]$down, find_gene, character(1), norm = norm) else NULL
-      s <- singscore_custom(ranks, ng, up, dn); if (!is.null(s)) score_cols[[nm]] <- s
+      s <- score_sig(ranks, up, dn); if (!is.null(s)) score_cols[[nm]] <- s
     }
     S <- as.data.frame(score_cols); rownames(S) <- colnames(M)
 

@@ -26,6 +26,7 @@ bioc <- c(
   "GEOquery",     # download + parse GEO series
   "org.Hs.eg.db", # Entrez/Ensembl <-> HGNC symbol mapping
   "AnnotationDbi",
+  "singscore",    # rank-based single-sample signature scoring (02_build_matrix.R)
   "edgeR",        # pseudobulk differential expression (sc_mait_functional.R)
   "limma",        # edgeR dependency
   "fgsea"         # gene-set enrichment (sc_mait_functional.R)

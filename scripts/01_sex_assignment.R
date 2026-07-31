@@ -56,9 +56,9 @@ for (co in COHORTS) {
   gid <- co$gse; typ <- co$type
   cat("\n======", gid, sprintf("(%s)", typ), "======\n")
   res <- try({
-    gse <- getGEO(gid, destdir = GEO_CACHE, GSEMatrix = TRUE, getGPL = (typ == "array"))
+    gse <- getGEO_retry(gid, destdir = GEO_CACHE, GSEMatrix = TRUE, getGPL = (typ == "array"))
     eset <- if (is.list(gse)) gse[[1]] else gse
-    gsms <- GSMList(getGEO(gid, destdir = GEO_CACHE, GSEMatrix = FALSE))
+    gsms <- GSMList(getGEO_retry(gid, destdir = GEO_CACHE, GSEMatrix = FALSE))
     meta <- do.call(rbind, lapply(names(gsms), function(n) {
       ch <- gsm_chars(gsms[[n]])
       data.frame(gsm = n, recorded_sex = rec_sex(ch),
@@ -69,7 +69,7 @@ for (co in COHORTS) {
       G <- array_symbol_matrix(eset)                       # symbols x samples
       G <- maybe_log2(G); gr <- gene_rows(G)
     } else {
-      M <- map_cols_to_gsm(getGEO(gid, destdir = GEO_CACHE, GSEMatrix = FALSE),
+      M <- map_cols_to_gsm(getGEO_retry(gid, destdir = GEO_CACHE, GSEMatrix = FALSE),
                            rnaseq_matrix(gid))
       M <- as.matrix(M); M <- maybe_log2(M); gr <- gene_rows(M)
     }

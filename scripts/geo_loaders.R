@@ -7,7 +7,22 @@
 ## series ships one file per GSM).
 ## ---------------------------------------------------------------------------
 suppressMessages(library(GEOquery))
-options(timeout = 1200)
+options(timeout = 3000)
+
+## Resilient GEO fetches: NCBI intermittently drops connections ("cannot open the
+## connection"). These wrappers retry a few times with a pause before giving up;
+## a cached file returns on the first try (no network), so there is no downside.
+.geo_retry <- function(thunk, what = "GEO fetch", tries = 6, wait = 20) {
+  for (i in seq_len(tries)) {
+    r <- tryCatch(thunk(), error = function(e) e)
+    if (!inherits(r, "error")) return(r)
+    message(sprintf("  [retry %d/%d] %s: %s", i, tries, what, conditionMessage(r)))
+    if (i < tries) Sys.sleep(wait)
+  }
+  stop(sprintf("%s failed after %d attempts (NCBI unreachable)", what, tries))
+}
+getGEO_retry          <- function(...) { a <- list(...); .geo_retry(function() do.call(GEOquery::getGEO, a), "getGEO") }
+getGEOSuppFiles_retry <- function(...) { a <- list(...); .geo_retry(function() do.call(GEOquery::getGEOSuppFiles, a), "getGEOSuppFiles") }
 
 ## ---- per-sample characteristics -> named list ----
 gsm_chars <- function(gsm) {
@@ -107,7 +122,7 @@ rnaseq_matrix <- function(gse_id) {
   ## (re)download supplementary files whenever the cache has no tabular table yet
   ## -- an empty/partial folder from a failed prior run must NOT skip the download.
   if (!length(list.files(ddir, pattern = tab_pat, recursive = TRUE, ignore.case = TRUE)))
-    getGEOSuppFiles(gse_id, baseDir = GEO_CACHE, makeDirectory = TRUE)
+    getGEOSuppFiles_retry(gse_id, baseDir = GEO_CACHE, makeDirectory = TRUE)
   ## untar any tarballs
   for (f in list.files(ddir, pattern = "\\.tar$", full.names = TRUE))
     try(untar(f, exdir = file.path(ddir, "untar")), silent = TRUE)
