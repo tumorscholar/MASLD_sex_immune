@@ -21,7 +21,7 @@ deconfounding step, and a disease-free (GTEx) control. The sex directions are th
 examined at single-cell resolution in an in-house CITE-seq cohort and four
 independent public single-cell cohorts.
 
-The analysis resolves two axes of sex difference: a **baseline male MAIT-cell bias**,
+The analysis resolves two axes of sex difference: a **baseline male-biased MAIT-cell signature**,
 present already in disease-free liver, specific to the receptor-defined
 (SLC4A10 / TRAV1-2) MAIT programme, homogeneous across cohorts (I-squared = 0%), and
 strengthening rather than weakening when adjusted for total T-cell content; and a
@@ -56,7 +56,7 @@ MASLD_sex_immune/
     ├── 07_run_deconv.R            xCell and MCP-counter deconvolution
     ├── 08_concordance.R           deconvolution vs signature concordance
     ├── 09_deconfound.R            BMI / type-2 diabetes / age deconfounding
-    ├── 13_meta_random.R           random-effects meta-analysis (metafor; Supp Fig S5/S6)
+    ├── 13_meta_random.R           random-effects meta-analysis (metafor; Supp Fig S2/S8)
     ├── 15_lineage_specificity.R   subset vs parent-lineage adjustment
     ├── sc_build_andrews.R         build a Seurat object (Andrews 2024)
     ├── sc_build_guilliams.R       build a Seurat object (Guilliams / Liver Cell Atlas)
@@ -69,14 +69,16 @@ MASLD_sex_immune/
     ├── sc_mait_functional.R       male vs female MAIT functional-state comparison
     ├── sc_meta_forest.R           Cliff's delta single-cell effect sizes per cohort
     ├── 16_sc_pooled_mait.R        pooled per-donor single-cell test (mixed model + van Elteren)
-    ├── make_tables.R              Tables 1 to 5
-    ├── 10_figures.R               Figures 1 to 6
-    ├── sc_meta_dotplot.R          Figure 7 (combined single-cell validation)
-    ├── 11_supp_figures.R          Supplementary Figures S1 to S3
-    ├── cohort_scout.R             (utility) inspect candidate GEO cohorts before adding them
-    ├── diag_newcohorts.R          (utility) sex-assignment QC for newly added cohorts
-    ├── 12_liver_deconv.R          exploratory (not in manuscript): liver-reference deconvolution (MuSiC)
-    ├── 14_hormone_signatures.R    exploratory (not in manuscript): hormone-response signatures
+    ├── make_tables.R              Tables 1-2 + Supplementary Tables S1-S5
+    ├── fig1_sex_assignment.R      Figure 1 (sex assignment)
+    ├── fig2_main_effects.R        Figure 2 (forest + distributions)
+    ├── fig3_mait_identity.R       Figure 3 (MAIT receptor identity)
+    ├── fig4_gtex_specificity.R    Figure 4 (MASLD vs GTEx + robustness)
+    ├── fig5_deconvolution.R       Figure 5 (deconvolution concordance)
+    ├── fig6_singlecell.R          Figure 6 (single-cell)
+    ├── make_workflow_schematic.R  Supplementary Figure S1 (analysis workflow)
+    ├── suppfig_deconfounding.R    Supplementary Figure S4 (metabolic deconfounding)
+    ├── 11_supp_figures.R          Supplementary Figures S2, S3, S5-S8
     └── FIGURES_LIST.md            figure and table catalogue
 ```
 
@@ -84,9 +86,7 @@ MASLD_sex_immune/
 
 R (>= 4.1) with the packages listed in `scripts/install_packages.R`, including
 `data.table`, `lme4`, `lmerTest`, `metafor`, `singscore`, `immunedeconv` (xCell,
-MCP-counter), `Seurat`, `ggplot2`, `fgsea`, `msigdbr` and `openxlsx` (and, only for
-the exploratory `12_liver_deconv.R`, `MuSiC` and its Bioconductor dependency
-`TOAST`). Install them once with:
+MCP-counter), `Seurat`, `ggplot2`, `fgsea`, `msigdbr` and `openxlsx`. Install them once with:
 
 ```r
 source("scripts/install_packages.R")
@@ -115,8 +115,7 @@ variables, all with sensible defaults:
 | `RUN_META`    | on      | random-effects meta-analysis (`13`) + lineage specificity (`15`) |
 | `RUN_SC`      | off     | single-cell validations + pooled per-donor test (`16`) (require the large raw downloads) |
 | `RUN_TABLES`  | on      | `make_tables.R` |
-| `RUN_FIGURES` | on      | `10_figures.R`, `sc_meta_dotplot.R`, `11_supp_figures.R` |
-| `RUN_EXTRA`   | off     | exploratory analyses **not** in the manuscript (`12` liver-reference deconvolution, `14` hormone signatures) |
+| `RUN_FIGURES` | on      | `fig1`–`fig6`, `make_workflow_schematic.R`, `suppfig_deconfounding.R`, `11_supp_figures.R` |
 
 ### Reproduce the bulk results without downloading raw data
 

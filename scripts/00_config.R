@@ -21,7 +21,7 @@ COHORTS <- list(
   list(gse = "GSE162694", type = "rnaseq"),
   list(gse = "GSE89632",  type = "array"),
   list(gse = "GSE135251", type = "rnaseq"),
-  ## added after cohort_scout + sex-assignment QC (public MASLD/NAFLD liver):
+  ## public MASLD/NAFLD liver cohorts (selected after scouting + sex-assignment QC):
   list(gse = "GSE167523", type = "rnaseq"),   # n=98, NAFL vs NASH, sex 0 ambiguous, 94.9% concordant
   list(gse = "GSE48452",  type = "array")     # n=73 (50 confident), fibrosis 0-4 + NAS, 98.0% concordant
   ## wave 2 (need per-cohort handling, not yet wired):
@@ -53,7 +53,7 @@ CELLTYPE <- list(
   ## receptor-identity MAIT (invariant TCR: SLC4A10 + TRAV1-2) vs promiscuous
   ## CD161/RORgt MAIT-like cells. The receptor-specific readout is the cleanest
   ## male-biased signal and must be scored here so it reaches analysis_matrix.csv
-  ## (10_figures, 13_meta_random and make_tables all expect these columns).
+  ## (the figure scripts, 13_meta_random and make_tables all expect these columns).
   ct_MAITspec    = c("SLC4A10","TRAV1-2"),
   ct_MAITpromisc = c("KLRB1","RORC","ZBTB16")
 )

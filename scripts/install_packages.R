@@ -28,9 +28,7 @@ bioc <- c(
   "AnnotationDbi",
   "edgeR",        # pseudobulk differential expression (sc_mait_functional.R)
   "limma",        # edgeR dependency
-  "fgsea",        # gene-set enrichment (sc_mait_functional.R)
-  "SingleCellExperiment", # reference container for MuSiC (12_liver_deconv.R)
-  "TOAST"         # MuSiC dependency (must be installed before MuSiC)
+  "fgsea"         # gene-set enrichment (sc_mait_functional.R)
 )
 for (p in bioc)
   if (!requireNamespace(p, quietly = TRUE)) BiocManager::install(p, update = FALSE, ask = FALSE)
@@ -42,7 +40,5 @@ if (!requireNamespace("MCPcounter", quietly = TRUE))     # deconvolution (07_run
   try(remotes::install_github("ebecht/MCPcounter", subdir = "Source", upgrade = "never"))
 if (!requireNamespace("schard", quietly = TRUE))         # read h5ad (sc_validate_hlica.R)
   try(remotes::install_github("cellgeni/schard", upgrade = "never"))
-if (!requireNamespace("MuSiC", quietly = TRUE))          # liver-reference deconvolution (12_liver_deconv.R)
-  try(remotes::install_github("xuranw/MuSiC", upgrade = "never"))
 
 message("install_packages.R done.")

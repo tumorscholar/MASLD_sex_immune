@@ -156,4 +156,4 @@ test1 <- function(v, dir) {
 cat("Headline directions (predicted: MAIT male, Treg/CD8/cDC female):\n")
 test1("MAIT_ofT",  "M"); test1("Treg_ofT", "F")
 test1("CD8_ofT",   "F"); test1("cDC_ofImm","F")
-cat("\nNext: point Fig 7 at this CSV via OWN_CITESEQ_CSV, then run 10_figures.R\n")
+cat("\nNext: point Fig 6 at this CSV via OWN_CITESEQ_CSV, then run fig6_singlecell.R\n")

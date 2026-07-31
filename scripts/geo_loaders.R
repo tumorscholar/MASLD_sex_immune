@@ -102,17 +102,24 @@ read_table_any <- function(path) {
 }
 rnaseq_matrix <- function(gse_id) {
   ddir <- file.path(GEO_CACHE, gse_id)
-  if (!dir.exists(ddir)) {
-    dir.create(ddir, recursive = TRUE, showWarnings = FALSE)
+  if (!dir.exists(ddir)) dir.create(ddir, recursive = TRUE, showWarnings = FALSE)
+  tab_pat <- "\\.(csv|tsv|txt|tab)(\\.gz)?$"
+  ## (re)download supplementary files whenever the cache has no tabular table yet
+  ## -- an empty/partial folder from a failed prior run must NOT skip the download.
+  if (!length(list.files(ddir, pattern = tab_pat, recursive = TRUE, ignore.case = TRUE)))
     getGEOSuppFiles(gse_id, baseDir = GEO_CACHE, makeDirectory = TRUE)
-  }
   ## untar any tarballs
   for (f in list.files(ddir, pattern = "\\.tar$", full.names = TRUE))
     try(untar(f, exdir = file.path(ddir, "untar")), silent = TRUE)
-  files <- list.files(ddir, pattern = "\\.(csv|tsv|txt|tab)(\\.gz)?$",
+  files <- list.files(ddir, pattern = tab_pat,
                       recursive = TRUE, full.names = TRUE, ignore.case = TRUE)
   if (!length(files)) stop("no tabular suppl for ", gse_id)
   if (length(files) > 20) {                       # per-sample layout (one file per GSM)
+    ## if some files are GSM-named and some are not, the non-GSM ones are usually
+    ## a bundled series-level matrix (e.g. GSE167523_Raw_gene_counts_matrix.txt.gz)
+    ## that would otherwise be read in as a spurious extra "sample" -- drop them.
+    has_gsm <- grepl("GSM\\d+", basename(files))
+    if (any(has_gsm) && any(!has_gsm)) files <- files[has_gsm]
     cols <- list()
     for (f in files) {
       key <- regmatches(basename(f), regexpr("GSM\\d+", basename(f)))

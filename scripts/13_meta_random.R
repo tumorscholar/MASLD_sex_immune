@@ -19,8 +19,7 @@ FIG <- FIGDIR; dir.create(FIG, showWarnings=FALSE, recursive=TRUE)
 MALE <- "#2c7fb8"; FEM <- "#d95f0e"
 save_fig <- function(draw, name, w, h) {
   pdf (file.path(FIG, paste0(name,".pdf")),  width=w, height=h);                                        draw(); dev.off()
-  tiff(file.path(FIG, paste0(name,".tiff")), width=w, height=h, units="in", res=300, compression="lzw"); draw(); dev.off()
-  png (file.path(FIG, paste0(name,".png")),  width=w, height=h, units="in", res=300);                   draw(); dev.off()
+  tiff(file.path(FIG, paste0(name,".tiff")), width=w, height=h, units="in", res=600, compression="lzw"); draw(); dev.off()
   cat("wrote", name, "(pdf, tiff, png)\n")
 }
 LAB <- c(ct_MAIT="MAIT", ct_MAITspec="MAIT (SLC4A10/TRAV1-2)", ct_Treg="Treg",
@@ -77,7 +76,7 @@ if (!is.null(mtx)) {
       forest(m, slab=pc$cohort, xlab="sex effect (SD; >0 male)", header=LAB[[r]],
              addpred=TRUE, cex=0.8, col=MALE, mlab=sprintf("RE model (I2=%.0f%%)", m$I2))
     }
-  }, "SuppFig_S5_bulk_meta_forest", 7, 2.2*length(hd))
+  }, "SuppFig_S2_bulk_meta_forest", 7, 2.2*length(hd))
 }
 
 ## ===================== SINGLE-CELL random-effects meta =====================
@@ -107,7 +106,7 @@ if (!is.null(eff)) {
         m <- rma(yi=s$delta, sei=s$se, method="REML")
         forest(m, slab=s$cohort, xlab="Cliff's delta (>0 male)", header=rd, addpred=TRUE,
                cex=0.8, col=MALE, mlab=sprintf("RE model (I2=%.0f%%)", m$I2)) }
-    }, "SuppFig_S6_sc_meta_forest_RE", 7, 2.2*length(unique(eff$readout)))
+    }, "SuppFig_S8_sc_meta_forest_RE", 7, 2.2*length(unique(eff$readout)))
   }
 }
 cat("\nDone. Wrote bulk_meta_random.csv, sc_meta_random.csv and forest figures to",

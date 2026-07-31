@@ -28,8 +28,7 @@ suppressMessages({library(Seurat); library(Matrix); library(edgeR); library(fgse
 save_fig <- function(draw, name, w, h) {
  render <- function() if (inherits(draw,"ggplot")) print(draw) else draw()
  pdf (file.path(OUTDIR, paste0(name,".pdf")),  width=w, height=h);                                       render(); dev.off()
- tiff(file.path(OUTDIR, paste0(name,".tiff")), width=w, height=h, units="in", res=300, compression="lzw"); render(); dev.off()
- png (file.path(OUTDIR, paste0(name,".png")),  width=w, height=h, units="in", res=300);                   render(); dev.off()
+ tiff(file.path(OUTDIR, paste0(name,".tiff")), width=w, height=h, units="in", res=600, compression="lzw"); render(); dev.off()
  cat("wrote", name, "\n")
 }
 MALE <- "#2c7fb8"; FEM <- "#d95f0e"
@@ -139,6 +138,6 @@ save_fig(ggplot(long, aes(sex,value,fill=sex)) + geom_boxplot(outlier.shape=NA,a
           geom_jitter(width=.15,size=1.5,alpha=.8) + facet_wrap(~state,nrow=1,scales="free_y") +
           scale_fill_manual(values=c(M=MALE,F=FEM)) + labs(x=NULL,y="per-donor state score (z)",
                                                            title="MAIT functional-state scores by sex (Andrews healthy)") +
-          theme_classic(base_size=9)+theme(legend.position="none"), "SuppFig_S4_MAIT_functional", 9, 3)
+          theme_classic(base_size=9)+theme(legend.position="none"), "SuppFig_S3_MAIT_functional", 9, 3)
 
 cat("\nDone. Wrote DE, fgsea (reactome+hallmark), state tables and figures to", OUTDIR, "\n")

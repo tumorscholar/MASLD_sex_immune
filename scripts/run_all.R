@@ -17,8 +17,7 @@
 ##   RUN_META=1      random-effects meta (13) + lineage specificity (15) (on by default)
 ##   RUN_SC=0        single-cell validations + pooled per-donor (16) (off: needs big raw data)
 ##   RUN_TABLES=1    make_tables.R              (on by default)
-##   RUN_FIGURES=1   figures 10/11 + dot plots  (on by default)
-##   RUN_EXTRA=0     exploratory, NOT in manuscript: liver deconv (12), hormone (14) (off)
+##   RUN_FIGURES=1   figures (fig1-6 + supplementary)   (on by default)
 ## ===========================================================================
 
 ## make sure we are in the scripts folder (works from Rscript or source())
@@ -34,7 +33,6 @@ RUN_META    <- flag("RUN_META",    TRUE)    # random-effects meta + lineage spec
 RUN_SC      <- flag("RUN_SC",      FALSE)
 RUN_TABLES  <- flag("RUN_TABLES",  TRUE)
 RUN_FIGURES <- flag("RUN_FIGURES", TRUE)
-RUN_EXTRA   <- flag("RUN_EXTRA",   FALSE)   # exploratory analyses NOT in the manuscript (liver-ref deconv, hormone signatures)
 
 results <- list()
 step <- function(label, file, cond = TRUE) {
@@ -52,7 +50,7 @@ step <- function(label, file, cond = TRUE) {
 cat("############################################################\n")
 cat("#  sex x MASLD hepatic-immune meta-analysis - full run\n")
 cat("#  bulk=", RUN_BULK, " meta=", RUN_META, " single-cell=", RUN_SC,
-    " tables=", RUN_TABLES, " figures=", RUN_FIGURES, " extra=", RUN_EXTRA, "\n", sep = "")
+    " tables=", RUN_TABLES, " figures=", RUN_FIGURES, "\n", sep = "")
 cat("############################################################\n")
 
 ## ---- 0. setup --------------------------------------------------------------
@@ -87,22 +85,24 @@ step("sc validate HLiCA",      "sc_validate_hlica.R",      RUN_SC)
 step("sc meta forest",         "sc_meta_forest.R",         RUN_SC)
 step("16 pooled per-donor single-cell", "16_sc_pooled_mait.R", RUN_SC)
 step("sc MAIT functional",     "sc_mait_functional.R",     RUN_SC)
-step("sc build in-house (Fig 7 provenance)", "sc_build_owncohort.R", RUN_SC)
+step("sc build in-house (Fig 6 provenance)", "sc_build_owncohort.R", RUN_SC)
 
 ## ---- 3. tables -------------------------------------------------------------
 step("make tables",            "make_tables.R",       RUN_TABLES)
 
-## ---- 4. figures ------------------------------------------------------------
-step("10 main figures (Fig 1-7)", "10_figures.R",     RUN_FIGURES)
-step("Fig 7 combined single-cell dot plot","sc_meta_dotplot.R", RUN_FIGURES)
-step("11 supplementary figures",  "11_supp_figures.R", RUN_FIGURES)
-
-## ---- 5. exploratory analyses (off by default; NOT in the manuscript) --------
-##  liver-reference deconvolution (rebuttal insurance; MAIT is below whole-tissue
-##  bulk resolution) and hormone-response signatures (null / confounded). See
-##  analyses_not_in_manuscript.md for why these are recorded but not reported.
-step("12 liver-reference deconvolution", "12_liver_deconv.R",       RUN_EXTRA)
-step("14 hormone-response signatures",   "14_hormone_signatures.R", RUN_EXTRA)
+## ---- 4. figures (one self-contained script per main figure) ----------------
+## New JHEP scheme: 6 main figures + supplementary. Each writes PDF (vector) +
+## TIFF (600 dpi) to $MASLD_REALDIR/figures/.
+step("Fig 1 sex assignment",        "fig1_sex_assignment.R",   RUN_FIGURES)
+step("Fig 2 main effects (forest+dist)", "fig2_main_effects.R", RUN_FIGURES)
+step("Fig 3 MAIT identity",         "fig3_mait_identity.R",     RUN_FIGURES)
+step("Fig 4 GTEx specificity",      "fig4_gtex_specificity.R",  RUN_FIGURES)
+step("Fig 5 deconvolution",         "fig5_deconvolution.R",     RUN_FIGURES)
+step("Fig 6 single-cell",           "fig6_singlecell.R",        RUN_FIGURES)
+## supplementary figures
+step("Supp Fig S1 workflow schematic",   "make_workflow_schematic.R", RUN_FIGURES)
+step("Supp Fig S4 metabolic deconfounding","suppfig_deconfounding.R",  RUN_FIGURES)
+step("Supp Figs S2,S3,S5-S8 (meta/single-cell)", "11_supp_figures.R",  RUN_FIGURES)
 
 ## ---- summary ---------------------------------------------------------------
 cat("\n############################################################\n")

@@ -31,6 +31,15 @@ for (r in READOUTS) {
     pct_attenuation = if (bu != 0) round(100*(bu-ba)/bu,1) else NA_real_,
     stringsAsFactors = FALSE)
 }
+if (!length(rows)) {
+  av <- colSums(!is.na(df[, c("bmi","t2d","age")]))
+  stop(sprintf(paste0("09_deconfound: no GSE89632 samples have complete BMI/T2D/age, so the ",
+    "deconfounding test cannot run. Non-NA counts among %d GSE89632 rows in analysis_matrix.csv - ",
+    "bmi:%d  t2d:%d  age:%d. These covariates are not always exposed in GEO metadata; supply them ",
+    "(e.g. merge a per-patient metabolic table into analysis_matrix.csv) to reproduce the ",
+    "metabolic-deconfounding check (Results 3.4 / Supp Fig S4)."),
+    nrow(df), av[["bmi"]], av[["t2d"]], av[["age"]]))
+}
 res <- do.call(rbind, rows)
 res <- res[order(-res$headline, res$p_unadj), ]
 write.csv(res, file.path(REALDIR, "deconf_within_cohort.csv"), row.names = FALSE)

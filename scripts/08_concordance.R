@@ -80,7 +80,7 @@ if (nrow(prim)) {
               ag, nrow(prim), 100*ag/nrow(prim)))
 }
 
-## Figure 6 (singscore beta vs xCell beta) is produced by 10_figures.R from the
+## Figure 5 (singscore beta vs xCell beta) is produced by fig5_deconvolution.R from the
 ## deconv_concordance.csv written above, so the whole figure set comes from one
 ## script. This step is analysis-only.
 cat("\nNOTE: MAIT is not represented in xCell/MCP-counter references (TCR-defined, not in\n")

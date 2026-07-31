@@ -14,8 +14,7 @@ rd <- function(p) if (file.exists(p)) read.csv(p, stringsAsFactors=FALSE) else {
 save_fig <- function(draw, name, w, h) {
   render <- function() if (inherits(draw,"ggplot")) print(draw) else draw()
   pdf (file.path(FIG, paste0(name,".pdf")),  width=w, height=h);                                        render(); dev.off()
-  tiff(file.path(FIG, paste0(name,".tiff")), width=w, height=h, units="in", res=300, compression="lzw"); render(); dev.off()
-  png (file.path(FIG, paste0(name,".png")),  width=w, height=h, units="in", res=300);                   render(); dev.off()
+  tiff(file.path(FIG, paste0(name,".tiff")), width=w, height=h, units="in", res=600, compression="lzw"); render(); dev.off()
   cat("wrote", name, "(pdf, tiff, png)\n")
 }
 
@@ -50,7 +49,7 @@ for (co in COH) {
   x <- x[x$sex %in% c("M","F"),]
   cols <- names(RMAP)[names(RMAP) %in% names(x)]
   cols <- cols[vapply(cols, function(c) any(is.finite(x[[c]])), logical(1))]
-  if (nrow(x) && length(cols)) save_fig(dotpanel(x, cols, co$id), paste0("SuppFig_S1_", co$id), 2.3*length(cols), 3.6)
+  if (nrow(x) && length(cols)) save_fig(dotpanel(x, cols, co$id), paste0("SuppFig_S5_", co$id), 2.3*length(cols), 3.6)
 }
 
 ## ---- S2: single-cell meta forest -------------------------------------------
@@ -69,7 +68,7 @@ if (!is.null(eff)) save_fig(function() {
       points(s$delta[i], i, pch=if(pooled)18 else 19, cex=if(pooled)1.6 else 1.1, col=col) }
     axis(2, at=yy, labels=s$cohort, las=1, cex.axis=0.7)
   }
-}, "SuppFig_S2_sc_meta_forest", 11, 3.4)
+}, "SuppFig_S6_sc_meta_forest", 11, 3.4)
 
 ## ---- S3: Guilliams QC (capture by sex + sex x diet) ------------------------
 g <- rd(file.path(SC, "guilliams/out/Guilliams_clean_per_patient.csv"))
@@ -84,7 +83,7 @@ if (!is.null(g)) { g <- g[g$sex %in% c("M","F"),]
       barplot(tb, beside=TRUE, col=c(FEM,MALE), legend.text=rownames(tb), xlab="diet",
               ylab="patients", main="B  Sex x diet (confound check)") }
     else plot.new()
-  }, "SuppFig_S3_guilliams_QC", 8, 3.6)
+  }, "SuppFig_S7_guilliams_QC", 8, 3.6)
 }
 
 cat("\nSupplementary figures written to", FIG, "as .pdf/.tiff/.png\n")
