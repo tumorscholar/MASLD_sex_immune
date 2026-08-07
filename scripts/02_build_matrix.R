@@ -16,9 +16,9 @@ score_sig <- function(ranks, up_ids, dn_ids = NULL) {
   if (!length(up_ids)) return(NULL)
   dn_ids <- if (!is.null(dn_ids)) unique(dn_ids[!is.na(dn_ids) & dn_ids %in% rownames(ranks)]) else NULL
   sc <- if (!is.null(dn_ids) && length(dn_ids))
-          singscore::simpleScore(ranks, upSet = up_ids, downSet = dn_ids)
-        else
-          singscore::simpleScore(ranks, upSet = up_ids)
+    singscore::simpleScore(ranks, upSet = up_ids, downSet = dn_ids)
+  else
+    singscore::simpleScore(ranks, upSet = up_ids)
   sc$TotalScore
 }
 
@@ -50,6 +50,7 @@ find_gene <- function(sym, norm) {
 `%||%` <- function(a, b) if (is.null(a) || is.na(a)) b else a
 
 rows <- list()
+cov_rows <- list()   # per-cohort x per-signature marker-gene coverage (QC)
 for (co in COHORTS) {
   gid <- co$gse; typ <- co$type
   cat("\n======", gid, "======\n")
@@ -64,8 +65,8 @@ for (co in COHORTS) {
     M <- M[!duplicated(rownames(M)), , drop = FALSE]
     M <- M[rowSums(!is.na(M)) > 0, , drop = FALSE]
     M <- maybe_log2(M)
-    norm <- build_lookup(M); ranks <- singscore::rankGenes(M)
-
+    norm <- build_lookup(M); ranks <- singscore::rankGenes(M, tiesMethod = "average")
+    
     ## sex assignment (within-cohort z of XIST vs Y)
     gvec <- function(sym) { h <- find_gene(sym, norm); if (!is.na(h)) as.numeric(M[h, ]) else NULL }
     yv <- Filter(Negate(is.null), lapply(MALE_MARKERS, gvec))
@@ -75,20 +76,34 @@ for (co in COHORTS) {
     diff <- zY - zX
     sexs <- ifelse(diff > SEX_MARGIN, "M", ifelse(diff < -SEX_MARGIN, "F", "Ambiguous"))
     names(sexs) <- colnames(M)
-
+    
+    ## record marker-gene coverage of each signature in this cohort (QC)
+    log_cov <- function(nm, genes, ids) {
+      miss <- genes[is.na(ids)]
+      cov_rows[[length(cov_rows) + 1]] <<- data.frame(
+        cohort = gid, platform = typ, signature = nm,
+        n_total = length(genes), n_detected = sum(!is.na(ids)),
+        coverage = round(sum(!is.na(ids)) / length(genes), 3),
+        missing = paste(miss, collapse = ";"), stringsAsFactors = FALSE)
+    }
+    
     ## signature scores
     score_cols <- list()
     for (nm in names(CELLTYPE)) {
       ids <- vapply(CELLTYPE[[nm]], find_gene, character(1), norm = norm)
+      log_cov(nm, CELLTYPE[[nm]], ids)
       s <- score_sig(ranks, ids); if (!is.null(s)) score_cols[[nm]] <- s
     }
     for (nm in names(STATE)) {
       up <- vapply(STATE[[nm]]$up, find_gene, character(1), norm = norm)
       dn <- if (length(STATE[[nm]]$down)) vapply(STATE[[nm]]$down, find_gene, character(1), norm = norm) else NULL
+      allg <- c(STATE[[nm]]$up, if (length(STATE[[nm]]$down)) STATE[[nm]]$down else character(0))
+      allids <- c(up, if (!is.null(dn)) dn else character(0))
+      log_cov(nm, allg, allids)
       s <- score_sig(ranks, up, dn); if (!is.null(s)) score_cols[[nm]] <- s
     }
     S <- as.data.frame(score_cols); rownames(S) <- colnames(M)
-
+    
     ## covariates from the SOFT metadata
     gsms <- GSMList(gse_soft)
     for (n in rownames(S)) {
@@ -103,7 +118,7 @@ for (co in COHORTS) {
       rows[[length(rows)+1]] <- as.data.frame(r, stringsAsFactors = FALSE)
     }
     cat(sprintf("  scored %d samples | readouts: %d | sex F/M/Amb: %d/%d/%d\n",
-        nrow(S), ncol(S), sum(sexs=="F"), sum(sexs=="M"), sum(sexs=="Ambiguous")))
+                nrow(S), ncol(S), sum(sexs=="F"), sum(sexs=="M"), sum(sexs=="Ambiguous")))
   }, silent = TRUE)
   if (inherits(res, "try-error")) cat("  !! FAILED", gid, ":", conditionMessage(attr(res,"condition")), "\n")
 }
@@ -120,6 +135,29 @@ defs <- list(celltype = CELLTYPE,
              state = lapply(STATE, function(s) list(up = s$up, down = s$down)))
 writeLines(jsonlite::toJSON(defs, pretty = TRUE, auto_unbox = TRUE),
            file.path(REALDIR, "signature_defs.json"))
+
+## ---- signature coverage QC ------------------------------------------------
+## How many marker genes of each signature were detected in each cohort. Long
+## form (one row per cohort x signature) plus a compact detected/total matrix.
+if (length(cov_rows)) {
+  cov <- as.data.frame(data.table::rbindlist(cov_rows, fill = TRUE))
+  write.csv(cov, file.path(REALDIR, "signature_coverage.csv"), row.names = FALSE)
+  cov$cell <- paste0(cov$n_detected, "/", cov$n_total)
+  wide <- reshape(cov[, c("signature", "cohort", "cell")],
+                  idvar = "signature", timevar = "cohort", direction = "wide")
+  names(wide) <- sub("^cell\\.", "", names(wide))
+  write.csv(wide, file.path(REALDIR, "signature_coverage_matrix.csv"), row.names = FALSE)
+  low <- cov[cov$coverage < 0.5, ]
+  cat(sprintf("\nSignature coverage: %d cohort x signature cells | median coverage %.0f%% | %d below 50%%\n",
+              nrow(cov), 100 * median(cov$coverage), nrow(low)))
+  if (nrow(low)) {
+    cat("  Below 50% coverage (interpret these readouts cautiously):\n")
+    for (i in seq_len(nrow(low)))
+      cat(sprintf("    %-14s %-16s %d/%d  missing: %s\n",
+                  low$cohort[i], low$signature[i], low$n_detected[i], low$n_total[i], low$missing[i]))
+  }
+  cat("Wrote signature_coverage.csv and signature_coverage_matrix.csv\n")
+}
 
 cat("\nWrote", out, " shape", nrow(df), "x", ncol(df), "\n")
 if (nrow(df)) {

@@ -13,11 +13,11 @@ ALL_MARK <- c(FEMALE_MARKERS, MALE_MARKERS)
 ## hardcoded cross-refs so we can find markers whether the matrix is indexed by
 ## symbol, Ensembl or Entrez.
 ENSEMBL <- c(XIST="ENSG00000229807", RPS4Y1="ENSG00000129824", DDX3Y="ENSG00000067048",
-  EIF1AY="ENSG00000198692", UTY="ENSG00000183878", KDM5D="ENSG00000012817",
-  USP9Y="ENSG00000114374", NLGN4Y="ENSG00000165246", ZFY="ENSG00000067646",
-  TXLNGY="ENSG00000131002")
+             EIF1AY="ENSG00000198692", UTY="ENSG00000183878", KDM5D="ENSG00000012817",
+             USP9Y="ENSG00000114374", NLGN4Y="ENSG00000165246", ZFY="ENSG00000067646",
+             TXLNGY="ENSG00000131002")
 ENTREZ <- c(XIST="7503", RPS4Y1="6192", DDX3Y="8653", EIF1AY="9086", UTY="7404",
-  KDM5D="8284", USP9Y="8287", NLGN4Y="22829", ZFY="7544", TXLNGY="246126")
+            KDM5D="8284", USP9Y="8287", NLGN4Y="22829", ZFY="7544", TXLNGY="246126")
 
 ## pull marker rows out of a matrix whatever its ID type
 gene_rows <- function(M) {
@@ -79,8 +79,8 @@ for (co in COHORTS) {
     kn <- df[!is.na(df$recorded_sex) & df$sex_assigned != "Ambiguous", ]
     if (nrow(kn))
       cat(sprintf("  Concordance vs recorded sex: %.1f%% (n=%d) | Ambiguous: %d\n",
-          100*mean(kn$recorded_sex == kn$sex_assigned), nrow(kn),
-          sum(df$sex_assigned == "Ambiguous")))
+                  100*mean(kn$recorded_sex == kn$sex_assigned), nrow(kn),
+                  sum(df$sex_assigned == "Ambiguous")))
     else
       cat("  No recorded sex in GEO -> assignment only. Ambiguous:",
           sum(df$sex_assigned == "Ambiguous"), "\n")
@@ -98,5 +98,26 @@ if (length(allc)) {
   pooled <- table(paste(A$gse, A$fibrosis_stage), A$sex_assigned)
   write.csv(pooled, file.path(OUTDIR, "sex_by_stage_ALL.csv"))
   cat("\n===== POOLED sex x fibrosis-stage =====\n"); print(pooled)
-  cat("\nWrote", OUTDIR, "-> sex_by_stage_ALL.csv\n")
+  
+  ## ---- threshold sensitivity ------------------------------------------------
+  ## Recompute calls from the continuous XIST/Y contrast (diff) at several margins
+  ## and report how the assignment rate and concordance with recorded sex respond.
+  ## Shows the +/-0.5 default is not a knife-edge choice.
+  margins <- c(0.25, 0.50, 0.75, 1.00)
+  sens <- do.call(rbind, lapply(margins, function(m) {
+    call     <- ifelse(A$diff > m, "M", ifelse(A$diff < -m, "F", "Ambiguous"))
+    assigned <- call != "Ambiguous"
+    kn       <- assigned & !is.na(A$recorded_sex)
+    data.frame(margin = m, n = nrow(A),
+               n_assigned = sum(assigned), pct_assigned = round(100 * mean(assigned), 1),
+               n_ambiguous = sum(!assigned), n_checkable = sum(kn),
+               concordance_pct = if (any(kn)) round(100 * mean(call[kn] == A$recorded_sex[kn]), 1) else NA_real_,
+               stringsAsFactors = FALSE)
+  }))
+  write.csv(sens, file.path(OUTDIR, "sex_threshold_sensitivity.csv"), row.names = FALSE)
+  cat("\n===== sex-assignment threshold sensitivity (default margin =", SEX_MARGIN, ") =====\n")
+  print(sens, row.names = FALSE)
+  cat("concordance_pct = agreement with recorded sex among assigned samples that have a recorded sex\n")
+  
+  cat("\nWrote", OUTDIR, "-> sex_by_stage_ALL.csv, sex_threshold_sensitivity.csv\n")
 } else cat("\nNo cohorts succeeded.\n")
