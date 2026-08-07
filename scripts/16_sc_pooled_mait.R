@@ -16,17 +16,17 @@
 ## by the single-cell validations (needs those outputs present).
 ## ===========================================================================
 source("00_config.R")
-suppressMessages({library(lme4); library(lmerTest)})
+suppressMessages({library(lme4); library(lmerTest); library(coin)})
 OUTBASE <- file.path(REALDIR, "single_cell")
 MIN_T   <- 50
 
 ## cohort registry (identical to sc_meta_forest.R)
 CO <- list(
- list(name="Andrews (healthy)",        csv="andrews2024/out/Andrews2024_per_donor_fractions.csv",      sub=c(group="healthy")),
- list(name="HLiCA (healthy)",          csv="hlica/out/HLiCA_per_patient.csv",                           sub=NULL),
- list(name="Guilliams (lean)",         csv="guilliams/out/Guilliams_clean_per_patient.csv",            sub=c(diet="Lean")),
- list(name="Ramachandran (cirrhotic)", csv="ramachandran/out/Ramachandran2019_per_donor_fractions.csv",sub=c(group="cirrhotic")),
- list(name="Ramachandran (healthy)",   csv="ramachandran/out/Ramachandran2019_per_donor_fractions.csv",sub=c(group="healthy"))
+  list(name="Andrews (healthy)",        csv="andrews2024/out/Andrews2024_per_donor_fractions.csv",      sub=c(group="healthy")),
+  list(name="HLiCA (healthy)",          csv="hlica/out/HLiCA_per_patient.csv",                           sub=NULL),
+  list(name="Guilliams (lean)",         csv="guilliams/out/Guilliams_clean_per_patient.csv",            sub=c(diet="Lean")),
+  list(name="Ramachandran (cirrhotic)", csv="ramachandran/out/Ramachandran2019_per_donor_fractions.csv",sub=c(group="cirrhotic")),
+  list(name="Ramachandran (healthy)",   csv="ramachandran/out/Ramachandran2019_per_donor_fractions.csv",sub=c(group="healthy"))
 )
 READOUTS <- c(MAIT_pctT="MAIT", Treg_pctT="Treg", CD8_pctT="CD8")
 
@@ -50,23 +50,24 @@ for (co in CO) {
 D <- do.call(rbind, donors)
 if (is.null(D) || !nrow(D)) stop("no single-cell per-donor CSVs found under ", OUTBASE)
 cat(sprintf("pooled donors: %d across %d cohorts | M/F: %d/%d\n",
-    nrow(D), length(unique(D$cohort)), sum(D$sex=="M"), sum(D$sex=="F")))
+            nrow(D), length(unique(D$cohort)), sum(D$sex=="M"), sum(D$sex=="F")))
 
-## ---- van Elteren cohort-stratified Wilcoxon (Z>0 = higher in males) ----------
+## ---- van Elteren test = cohort-stratified Wilcoxon, via the coin package ------
+## coin::wilcox_test(y ~ sex | cohort) is the stratified (van Elteren) rank test.
+## coin orients its standardized statistic to the first factor level (here F), so
+## we negate it to keep this script's convention that positive = higher in males.
+## The two-sided p-value is sign-independent. Returns c(Z, p); NA if no stratum
+## has both sexes.
 van_elteren <- function(value, sex, stratum) {
   ok <- !is.na(value) & sex %in% c("M","F")
-  value <- value[ok]; sex <- sex[ok]; stratum <- stratum[ok]
-  num <- 0; den <- 0
-  for (h in unique(stratum)) {
-    i <- stratum == h; v <- value[i]; s <- sex[i]
-    nh <- length(v); nM <- sum(s=="M"); nF <- sum(s=="F")
-    if (nM < 1 || nF < 1) next
-    w <- 1/(nh + 1); r <- rank(v)                       # mid-ranks within stratum
-    num <- num + w * (sum(r[s=="M"]) - nM*(nh+1)/2)
-    den <- den + w^2 * (nM*nF*(nh+1)/12)
-  }
-  if (den <= 0) return(c(Z=NA, p=NA))
-  Z <- num/sqrt(den); c(Z=Z, p=2*pnorm(-abs(Z)))
+  d  <- data.frame(v = value[ok], s = factor(sex[ok], levels = c("F","M")),
+                   h = factor(stratum[ok]))
+  d  <- d[ave(as.integer(d$s == "M"), d$h, FUN = sum) > 0 &
+            ave(as.integer(d$s == "F"), d$h, FUN = sum) > 0, ]   # strata with both sexes
+  if (!nrow(d) || nlevels(droplevels(d$s)) < 2) return(c(Z = NA, p = NA))
+  wt <- coin::wilcox_test(v ~ s | h, data = d)
+  c(Z = -as.numeric(coin::statistic(wt, type = "standardized")),
+    p = as.numeric(coin::pvalue(wt)))
 }
 
 ## ---- per readout: pooled mixed model + van Elteren + per-cohort direction ----
@@ -78,12 +79,12 @@ for (rv in names(READOUTS)) {
   d$yt   <- asin(sqrt(pmin(pmax(d$y/100, 0), 1)))       # arcsine-sqrt of proportion
   ## (1) mixed model
   mm <- tryCatch(lmerTest::lmer(yt ~ sexM + (1|cohort), d,
-        control = lmerControl(calc.derivs = FALSE)), error = function(e) NULL)
+                                control = lmerControl(calc.derivs = FALSE)), error = function(e) NULL)
   if (is.null(mm)) {                                    # fall back to cohort fixed effect
     mm2 <- lm(yt ~ sexM + cohort, d); co <- summary(mm2)$coefficients
     b <- co["sexM","Estimate"]; p <- co["sexM","Pr(>|t|)"]; model <- "lm(+cohort FE)"
   } else { co <- summary(mm)$coefficients
-    b <- co["sexM","Estimate"]; p <- co["sexM","Pr(>|t|)"]; model <- "lmer(1|cohort)" }
+  b <- co["sexM","Estimate"]; p <- co["sexM","Pr(>|t|)"]; model <- "lmer(1|cohort)" }
   ## (2) van Elteren
   ve <- van_elteren(d$y, d$sex, d$cohort)
   ## per-cohort direction (sign of median male - median female)
@@ -92,10 +93,10 @@ for (rv in names(READOUTS)) {
     sign(median(z$y[z$sexM==1]) - median(z$y[z$sexM==0])) })
   nmale_dir <- sum(dirs > 0, na.rm=TRUE); nfem_dir <- sum(dirs < 0, na.rm=TRUE)
   out[[rv]] <- data.frame(readout=READOUTS[[rv]], model=model,
-    nM=sum(d$sexM==1), nF=sum(d$sexM==0),
-    beta_arcsin=round(b,4), p_mixed=signif(p,3),
-    vanElteren_Z=round(ve["Z"],3), p_vanElteren=signif(ve["p"],3),
-    cohorts_male_dir=nmale_dir, cohorts_female_dir=nfem_dir, row.names=NULL)
+                          nM=sum(d$sexM==1), nF=sum(d$sexM==0),
+                          beta_arcsin=round(b,4), p_mixed=signif(p,3),
+                          vanElteren_Z=round(ve["Z"],3), p_vanElteren=signif(ve["p"],3),
+                          cohorts_male_dir=nmale_dir, cohorts_female_dir=nfem_dir, row.names=NULL)
 }
 res <- do.call(rbind, out)
 write.csv(res, file.path(OUTBASE, "sc_pooled_perdonor.csv"), row.names=FALSE)
@@ -112,9 +113,9 @@ if ("n_T" %in% names(D) && "MAIT_pctT" %in% names(D)) {
   bycoh <- do.call(rbind, lapply(split(D, D$cohort), function(z) {
     mm <- z$mait_cells[!is.na(z$mait_cells)]
     data.frame(cohort=z$cohort[1], donors=nrow(z),
-      median_nT=if(all(is.na(z$n_T))) NA else round(median(z$n_T,na.rm=TRUE),0),
-      median_MAIT_cells=if(!length(mm)) NA else round(median(mm),1),
-      pct_under5=if(!length(mm)) NA else round(100*mean(mm<5),0), row.names=NULL) }))
+               median_nT=if(all(is.na(z$n_T))) NA else round(median(z$n_T,na.rm=TRUE),0),
+               median_MAIT_cells=if(!length(mm)) NA else round(median(mm),1),
+               pct_under5=if(!length(mm)) NA else round(100*mean(mm<5),0), row.names=NULL) }))
   print(bycoh, row.names=FALSE)
   cat("If most donors carry only a handful of MAIT cells, per-donor MAIT fractions are\n",
       "noise-dominated and the pooled null is a POWER ceiling, not absence of effect -\n",

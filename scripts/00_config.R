@@ -104,29 +104,10 @@ zscore <- function(x) {
   (x - mu) / sdv
 }
 
-## singscore (rank-based single-sample score):
-##   score = 2 * (mean_rank_of_markers / n_genes - 0.5)
-## `ranks` is a genes x samples matrix of within-sample average ranks; `ng` = n_genes.
-singscore_custom <- function(ranks, ng, up_ids, dn_ids = NULL) {
-  comp <- function(ids) {
-    ids <- ids[!is.na(ids) & ids %in% rownames(ranks)]
-    if (length(ids) == 0) return(NULL)
-    2 * (colMeans(ranks[ids, , drop = FALSE]) / ng - 0.5)
-  }
-  u <- comp(up_ids)
-  if (is.null(u)) return(NULL)
-  if (!is.null(dn_ids) && length(dn_ids) > 0) {
-    d <- comp(dn_ids)
-    if (!is.null(d)) return(u - d)
-  }
-  u
-}
-
-## within-sample average ranks of an expression matrix (genes x samples),
-## average ranks within each sample (ties averaged)
-rank_matrix <- function(M) {
-  apply(M, 2, function(col) rank(col, ties.method = "average", na.last = "keep"))
-}
+## Signature scoring uses the Bioconductor singscore package throughout
+## (singscore::rankGenes + simpleScore); see 02_build_matrix.R and
+## 04_gtex_control.R. The earlier hand-rolled rank scorer has been removed so a
+## single, standard method is used for both MASLD and the GTEx control.
 
 ## map a fibrosis-stage label to an ordinal 0-4 (NA if not codeable)
 code_fibrosis <- function(s) {

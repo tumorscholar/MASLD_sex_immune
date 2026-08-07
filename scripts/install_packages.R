@@ -15,7 +15,9 @@ cran <- c(
   "Seurat",       # single-cell objects and processing
   "msigdbr",      # gene-set collections for fgsea
   "openxlsx",     # combined tables workbook (make_tables.R)
-  "metafor"       # random-effects meta-analysis (13_meta_random.R)
+  "metafor",      # random-effects meta-analysis (13_meta_random.R)
+  "coin",         # stratified (van Elteren) Wilcoxon test (16_sc_pooled_mait.R)
+  "effsize"       # Cliff's delta effect size (sc_meta_forest.R)
 )
 for (p in cran)
   if (!requireNamespace(p, quietly = TRUE)) install.packages(p)
